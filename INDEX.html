@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estudio Jurídico – Gestión de Juicios (MVP)</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --muted:#1f2937; /* gray-800 */
+      --muted-2:#374151; /* gray-700 */
+      --text:#e5e7eb; /* gray-200 */
+      --sub:#9ca3af; /* gray-400 */
+      --brand:#22d3ee; /* cyan-400 */
+      --brand-2:#06b6d4; /* cyan-500 */
+      --danger:#ef4444; /* red-500 */
+      --warn:#f59e0b; /* amber-500 */
+      --ok:#10b981; /* emerald-500 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#0b1026);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    .app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+    header{display:flex;align-items:center;gap:16px;padding:14px 18px;border-bottom:1px solid #1f243a;background:rgba(0,0,0,.35);backdrop-filter:saturate(120%) blur(8px);position:sticky;top:0;z-index:10}
+    header h1{font-size:18px;margin:0}
+    .pill{padding:4px 10px;border:1px solid var(--muted-2);border-radius:999px;color:var(--sub)}
+    .brand{color:var(--brand)}
+    .container{display:grid;grid-template-columns:280px 1fr;gap:14px;padding:14px}
+    aside{background:var(--panel);border:1px solid #1f243a;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+    main{background:var(--panel);border:1px solid #1f243a;border-radius:14px;padding:12px;}
+    .section{display:none}
+    .section.active{display:block}
+    .btn{padding:8px 12px;border-radius:12px;border:1px solid var(--muted-2);background:#0b122b;color:var(--text);cursor:pointer}
+    .btn:hover{border-color:var(--brand);color:#d9fbff}
+    .btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2));color:#05151a;border-color:transparent}
+    .btn.ghost{background:transparent}
+    .btn.danger{border-color:var(--danger);color:#fecaca}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 12px}
+    input, select, textarea{width:100%;padding:10px;border-radius:12px;border:1px solid var(--muted-2);background:#0b122b;color:var(--text)}
+    label{font-size:12px;color:var(--sub)}
+    .grid{display:grid;gap:10px}
+    .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-4{grid-template-columns:repeat(4,1fr)}
+    .card{background:#0b122b;border:1px solid var(--muted-2);border-radius:14px;padding:10px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--muted-2);border-radius:12px;background:#0b122b}
+    .row .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tag{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--muted-2);color:var(--sub)}
+    .tag.type-Escrito{border-color:#60a5fa;color:#bfdbfe}
+    .tag.type-Decreto{border-color:#f59e0b;color:#fde68a}
+    .tag.type-Sentencia{border-color:#34d399;color:#bbf7d0}
+    .tag.type-Otro{border-color:#94a3b8;color:#e2e8f0}
+    .kbd{border:1px solid var(--muted-2);border-bottom-width:3px;padding:2px 6px;border-radius:8px;color:#c7d2fe}
+    .notice{padding:8px 10px;border-left:3px solid var(--brand);background:#071028;border-radius:8px}
+    .empty{border:1px dashed var(--muted-2);border-radius:12px;padding:16px;color:var(--sub);text-align:center}
+    .right{margin-left:auto}
+    .danger-text{color:#fecaca}
+    .ok-text{color:#bbf7d0}
+    .warn-text{color:#fde68a}
+    .muted-text{color:var(--sub)}
+    .table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    .table th{font-size:12px;color:var(--sub);text-align:left;padding:4px 6px}
+    .table td{padding:10px;background:#0b122b;border:1px solid var(--muted-2)}
+    .table tr td:first-child{border-radius:10px 0 0 10px}
+    .table tr td:last-child{border-radius:0 10px 10px 0}
+    .flex{display:flex;gap:8px;align-items:center}
+    .gap-2{gap:12px}
+    .grow{flex:1}
+    .hidden{display:none}
+    @media (max-width: 1024px){
+      .container{grid-template-columns:1fr}
+      aside{order:2}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>⚖️ Estudio Jurídico</h1>
+      <span class="pill">MVP local <span class="muted-text">(datos guardados en tu navegador)</span></span>
+      <div class="right flex gap-2">
+        <input id="user" placeholder="Usuario" style="width:110px" />
+        <input id="pass" type="password" placeholder="Clave" style="width:110px" />
+        <button class="btn" id="btnLogin">Login</button>
+        <span id="loginStatus" class="pill">Offline</span>
+        <button class="btn" id="btnLoadBackend">Cargar backend</button>
+        <button class="btn" id="btnExport">Exportar JSON</button>
+        <label class="btn ghost" for="importFile">Importar JSON</label>
+        <input type="file" id="importFile" accept="application/json" class="hidden" />
+      </div>
+    </header>
+
+    <div class="container">
+      <aside>
+        <div class="card">
+          <div class="toolbar">
+            <button class="btn primary" data-nav="juicios">Juicios</button>
+            <button class="btn" data-nav="agenda">Agenda / Vencimientos</button>
+            <button class="btn" data-nav="plantillas">Escritos</button>
+            <button class="btn" data-nav="config">Configuración</button>
+          </div>
+          <div class="notice">
+            <strong>Privacidad:</strong> este MVP funciona 100% en tu equipo y guarda los datos en <em>localStorage</em>. Para uso real en equipo, hay que migrar a servidor seguro con cifrado y usuarios.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Buscar / Filtrar</h3>
+          <div class="grid">
+            <input id="search" placeholder="Buscar por cliente, n° expediente, juzgado..." />
+            <div class="grid cols-2">
+              <select id="filtroFuero">
+                <option value="">Fuero (todos)</option>
+                <option>Laboral</option>
+                <option>Civil</option>
+                <option>Familia</option>
+                <option>Penal</option>
+                <option>Comercial</option>
+              </select>
+              <select id="filtroCiudad">
+                <option value="">Ciudad (todas)</option>
+                <option>San Miguel</option>
+                <option>Concepción</option>
+                <option>Monteros</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Nuevo Juicio</h3>
+          <form id="formJuicio" class="grid">
+            <div class="grid cols-2">
+              <div>
+                <label>Actor</label>
+                <input name="actor" required />
+              </div>
+              <div>
+                <label>Demandado</label>
+                <input name="demandado" required />
+              </div>
+            </div>
+            <div class="grid cols-2">
+              <div>
+                <label>N° de expediente</label>
+                <input name="expediente" required />
+              </div>
+              <div>
+                <label>Objeto del juicio</label>
+                <input name="objeto" />
+              </div>
+            </div>
+            <div class="grid cols-3">
+              <div>
+                <label>Fuero</label>
+                <select name="fuero">
+                  <option>Laboral</option>
+                  <option>Civil</option>
+                  <option>Familia</option>
+                  <option>Penal</option>
+                  <option>Comercial</option>
+                </select>
+              </div>
+              <div>
+                <label>Juzgado</label>
+                <input name="juzgado" />
+              </div>
+              <div>
+                <label>Ciudad</label>
+                <select name="ciudad">
+                  <option>San Miguel</option>
+                  <option>Concepción</option>
+                  <option>Monteros</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>Abogado de la otra parte</label>
+              <input name="abogadoContrario" />
+            </div>
+            <button class="btn primary" type="submit">➕ Crear juicio</button>
+          </form>
+        </div>
+      </aside>
+
+      <main>
+        <!-- Juicios / detalle -->
+        <section id="sec-juicios" class="section active">
+          <div class="toolbar">
+            <span class="muted-text">Lista de expedientes</span>
+            <span class="right muted-text" id="resumenJuicios"></span>
+          </div>
+          <div id="listJuicios" class="list"></div>
+          <div id="emptyJuicios" class="empty hidden">No hay juicios cargados todavía.</div>
+
+          <hr style="border:0;border-top:1px solid var(--muted-2);margin:14px 0" />
+
+          <div id="detalleJuicio" class="hidden">
+            <h2 id="dj-titulo">Expediente</h2>
+            <div class="grid cols-4">
+              <div class="card"><div class="muted-text">Actor</div><div id="dj-actor"></div></div>
+              <div class="card"><div class="muted-text">Demandado</div><div id="dj-demandado"></div></div>
+              <div class="card"><div class="muted-text">N° Expediente</div><div id="dj-exp"></div></div>
+              <div class="card"><div class="muted-text">Fuero</div><div id="dj-fuero"></div></div>
+              <div class="card"><div class="muted-text">Juzgado</div><div id="dj-juzgado"></div></div>
+              <div class="card"><div class="muted-text">Ciudad</div><div id="dj-ciudad"></div></div>
+              <div class="card"><div class="muted-text">Abog. contrario</div><div id="dj-contrario"></div></div>
+              <div class="card"><div class="muted-text">Vencimientos</div><div id="dj-vencTotal"></div></div>
+            </div>
+
+            <div class="grid cols-2" style="margin-top:10px">
+              <div class="card">
+                <div class="flex gap-2"><h3 class="grow">Movimientos</h3><button class="btn" id="btnAddMov">➕ Nuevo</button></div>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th>Descripción</th>
+                      <th>Adjunto</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaMov"></tbody>
+                </table>
+                <div id="emptyMov" class="empty hidden">Sin movimientos aún.</div>
+              </div>
+
+              <div class="card">
+                <div class="flex gap-2"><h3 class="grow">Vencimientos / Audiencias</h3><button class="btn" id="btnAddVto">➕ Nuevo</button></div>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Detalle</th>
+                      <th>Anticipo</th>
+                      <th>Estado</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaVto"></tbody>
+                </table>
+                <div id="emptyVto" class="empty hidden">Sin vencimientos.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="flex gap-2"><h3 class="grow">Cuadernos de Prueba</h3><button class="btn" id="btnAddCuaderno">➕ Nuevo</button></div>
+              <div id="listaCuadernos" class="list"></div>
+              <div id="emptyCua" class="empty hidden">Aún no hay cuadernos (Testimonial, Pericial, Informes...).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agenda global -->
+        <section id="sec-agenda" class="section">
+          <div class="toolbar">
+            <h2 class="grow">Agenda y alertas</h2>
+            <div class="flex gap-2">
+              <label class="muted-text">Mostrar próximos días</label>
+              <input type="number" id="agendaDias" value="30" min="1" style="width:90px" />
+              <button class="btn" id="btnRefrescarAgenda">Actualizar</button>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Expediente</th>
+                <th>Detalle</th>
+                <th>Anticipo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="agendaBody"></tbody>
+          </table>
+          <div id="agendaVacia" class="empty hidden">No hay eventos en el rango.</div>
+        </section>
+
+        <!-- Escritos (plantillas simples) -->
+        <section id="sec-plantillas" class="section">
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>Redactor rápido</h3>
+              <div class="grid">
+                <label>Título</label>
+                <input id="escTitulo" placeholder="Escrito / Presentación..." />
+                <label>Contenido</label>
+                <textarea id="escContenido" rows="10" placeholder="Escribí acá y luego exportá .docx o asociá al movimiento"></textarea>
+                <div class="flex gap-2">
+                  <button class="btn" id="btnAdjuntarEscrito">Asociar al último movimiento del expediente abierto</button>
+                  <button class="btn" id="btnExportDoc">Exportar .txt</button>
+                </div>
+                <div class="notice">En el MVP exportamos a <span class="kbd">.txt</span> para simplicidad. En producción se genera <span class="kbd">.docx</span> listo para firma digital.</div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Plantillas</h3>
+              <div class="list" id="listaPlantillas"></div>
+              <div class="empty">Sumaremos editor de plantillas en próximas iteraciones.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Configuración -->
+        <section id="sec-config" class="section">
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>Preferencias de recordatorio</h3>
+              <div class="grid cols-3">
+                <div>
+                  <label>Anticipo rápido 1</label>
+                  <input id="prefA1" type="number" value="1" min="0" />
+                </div>
+                <div>
+                  <label>Anticipo rápido 2</label>
+                  <input id="prefA2" type="number" value="5" min="0" />
+                </div>
+                <div>
+                  <label>Anticipo rápido 3</label>
+                  <input id="prefA3" type="number" value="10" min="0" />
+                </div>
+              </div>
+              <div class="notice">Estos valores aparecen como atajos al crear vencimientos.</div>
+            </div>
+            <div class="card">
+              <h3>Datos y seguridad</h3>
+              <div class="grid">
+                <button class="btn" id="btnBackup">Descargar backup JSON</button>
+                <button class="btn danger" id="btnBorrarTodo">Borrar todo (local)</button>
+                <div class="notice danger-text">Este MVP guarda datos solo en tu navegador. Para uso colaborativo real: servidor con cifrado, usuarios/roles, backups automáticos y auditoría.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modales simples -->
+  <dialog id="dlgMov" class="card" style="max-width:700px">
+    <form method="dialog" id="formMov" class="grid">
+      <h3>Nuevo movimiento</h3>
+      <div class="grid cols-3">
+        <div>
+          <label>Fecha</label>
+          <input type="date" name="fecha" required />
+        </div>
+        <div>
+          <label>Tipo</label>
+          <select name="tipo">
+            <option>Escrito</option>
+            <option>Decreto</option>
+            <option>Sentencia</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div>
+          <label>Descripción breve</label>
+          <input name="resumen" placeholder="p.ej. Se abre a prueba por 15 días" />
+        </div>
+      </div>
+      <div>
+        <label>Texto completo</label>
+        <textarea name="texto" rows="6" placeholder="Pegá aquí el decreto completo o el texto del escrito"></textarea>
+      </div>
+      <div>
+        <label>Adjuntar PDF (opcional)</label>
+        <input type="file" name="pdf" accept="application/pdf" />
+      </div>
+      <div class="flex gap-2 right">
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn primary" value="ok">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgVto" class="card" style="max-width:600px">
+    <form method="dialog" id="formVto" class="grid">
+      <h3>Nuevo vencimiento / audiencia</h3>
+      <div class="grid cols-2">
+        <div>
+          <label>Fecha</label>
+          <input type="date" name="fecha" required />
+        </div>
+        <div>
+          <label>Detalle</label>
+          <input name="detalle" placeholder="Audiencia testimonial, contestación, etc." />
+        </div>
+      </div>
+      <div class="grid cols-3">
+        <div>
+          <label>Anticipar (días)</label>
+          <input type="number" name="anticipar" value="5" min="0" />
+        </div>
+        <div>
+          <label>Atajos</label>
+          <div class="flex">
+            <button class="btn" type="button" data-atajo="prefA1"></button>
+            <button class="btn" type="button" data-atajo="prefA2"></button>
+            <button class="btn" type="button" data-atajo="prefA3"></button>
+          </div>
+        </div>
+        <div>
+          <label>Estado</label>
+          <select name="estado">
+            <option>Pendiente</option>
+            <option>Hecho</option>
+            <option>Reprogramado</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 right">
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn primary" value="ok">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgCuaderno" class="card" style="max-width:520px">
+    <form method="dialog" id="formCuaderno" class="grid">
+      <h3>Nuevo cuaderno de prueba</h3>
+      <div class="grid cols-2">
+        <div>
+          <label>Tipo</label>
+          <select name="tipo">
+            <option>Testimonial</option>
+            <option>Pericial</option>
+            <option>Informes</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div>
+          <label>Nombre / Identificador</label>
+          <input name="nombre" placeholder="Ej. Testigos A-B" />
+        </div>
+      </div>
+      <div>
+        <label>Notas</label>
+        <textarea name="notas" rows="4"></textarea>
+      </div>
+      <div class="flex gap-2 right">
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn primary" value="ok">Crear</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    /* =================== Estado y utilidades =================== */
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const DB_KEY = 'legal-mvp-db-v1';
+    const state = {
+      juicios: [], // {id, actor, demandado, expediente, objeto, fuero, juzgado, ciudad, abogadoContrario, movs:[], vtos:[], cuadernos:[]}
+      prefs: { a1:1, a2:5, a3:10 }
+    };
+    const fmtDate = (d) => new Date(d).toLocaleDateString('es-AR');
+    const todayISO = () => new Date().toISOString().slice(0,10);
+    const uid = () => Math.random().toString(36).slice(2,9);
+
+    function save(){ localStorage.setItem(DB_KEY, JSON.stringify(state)); render(); }
+    function load(){
+      const raw = localStorage.getItem(DB_KEY);
+      if(raw){ try{ const obj = JSON.parse(raw); Object.assign(state, obj); }catch(e){ console.error(e); }}
+    }
+
+    /* =================== Conexión con Backend =================== */
+const API_BASE = 'http://localhost:3000';
+let token = localStorage.getItem('jwt') || null;
+
+function setAuthUI(){
+  const el = $('#loginStatus');
+  if(!el) return;
+  const online = !!token;
+  el.textContent = online ? 'Conectado' : 'Offline';
+  el.className = 'pill ' + (online ? 'ok-text' : 'muted-text');
+}
+setAuthUI();
+
+async function loginBackend(){
+  const username = $('#user').value;
+  const password = $('#pass').value;
+  try{
+    const res = await fetch(API_BASE + '/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    if(!res.ok) throw new Error('Login');
+    const data = await res.json();
+    token = data.token; localStorage.setItem('jwt', token);
+    setAuthUI();
+    alert('✅ Login OK');
+  }catch(e){
+    token = null; localStorage.removeItem('jwt'); setAuthUI();
+    alert('❌ Login incorrecto');
+  }
+}
+
+async function cargarDesdeBackend(){
+  if(!token){ alert('Primero iniciá sesión'); return; }
+  try{
+    const res = await fetch(API_BASE + '/juicios', { headers:{ Authorization:'Bearer '+token } });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const juicios = await res.json();
+    state.juicios = (juicios||[]).map(j=>({
+      id: String(j.id || uid()),
+      actor: j.actor||'', demandado: j.demandado||'', expediente: j.expediente||'', objeto: j.objeto||'',
+      fuero: j.fuero||'Laboral', juzgado: j.juzgado||'', ciudad: j.ciudad||'', abogadoContrario: j.abogadoContrario||'',
+      movs: j.movs||[], vtos: j.vtos||[], cuadernos: j.cuadernos||[]
+    }));
+    save(); render();
+    alert('📥 Juicios cargados desde backend');
+  }catch(err){ alert('Error al cargar: '+err.message); }
+}
+
+$('#btnLogin')?.addEventListener('click', loginBackend);
+$('#btnLoadBackend')?.addEventListener('click', cargarDesdeBackend);
+
+/* =================== Navegación =================== */
+    $$("[data-nav]").forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const target = btn.getAttribute('data-nav');
+        $$('.section').forEach(s=>s.classList.remove('active'));
+        $('#sec-'+target).classList.add('active');
+      });
+    });
+
+    /* =================== Filtros / búsqueda =================== */
+    ['search','filtroFuero','filtroCiudad'].forEach(id=>{
+      $('#'+id).addEventListener('input', ()=> renderJuicios());
+    });
+
+    /* =================== Crear juicio =================== */
+    $('#formJuicio').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const j = Object.fromEntries(fd.entries());
+      const ju = { id: uid(), ...j, movs:[], vtos:[], cuadernos:[] };
+
+      // Si hay login, intentamos guardar también en el backend
+      if(token){
+        try{
+          const res = await fetch(API_BASE + '/juicios',{
+            method:'POST',
+            headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+            body: JSON.stringify(ju)
+          });
+          if(res.ok){ const saved = await res.json(); ju.id = String(saved.id || ju.id); }
+        }catch(err){ console.warn('No se pudo guardar en backend:', err.message); }
+      }
+
+      state.juicios.unshift(ju);
+      e.target.reset();
+      save();
+      selectJuicio(ju.id);
+    });
+
+    /* =================== Render juicios =================== */
+    function renderJuicios(){
+      const cont = $('#listJuicios');
+      cont.innerHTML = '';
+      const q = $('#search').value.toLowerCase().trim();
+      const fuero = $('#filtroFuero').value;
+      const ciudad = $('#filtroCiudad').value;
+
+      const lista = state.juicios.filter(j=>{
+        const matchQ = !q || [j.actor,j.demandado,j.expediente,j.juzgado,j.objeto].some(v=>String(v||'').toLowerCase().includes(q));
+        const matchF = !fuero || j.fuero===fuero;
+        const matchC = !ciudad || j.ciudad===ciudad;
+        return matchQ && matchF && matchC;
+      });
+
+      $('#resumenJuicios').textContent = `${lista.length} juicios (total ${state.juicios.length})`;
+      $('#emptyJuicios').classList.toggle('hidden', lista.length>0);
+
+      lista.forEach(j=>{
+        const vtosPend = j.vtos.filter(v=>v.estado!=='Hecho').length;
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div class="meta">
+            <strong>${j.actor}</strong> vs <strong>${j.demandado}</strong>
+            <span class="tag">Exp: ${j.expediente||'-'}</span>
+            <span class="tag">${j.fuero}</span>
+            <span class="tag">${j.ciudad}</span>
+            ${vtosPend?`<span class="tag" style="border-color:var(--warn);color:#fde68a">${vtosPend} pendientes</span>`:''}
+          </div>
+          <div class="meta">
+            <button class="btn" data-open="${j.id}">Abrir</button>
+            <button class="btn danger" data-del="${j.id}">Eliminar</button>
+          </div>
+        `;
+        cont.appendChild(row);
+      });
+
+      $$('[data-open]').forEach(b=> b.onclick = ()=> selectJuicio(b.getAttribute('data-open')));
+      $$('[data-del]').forEach(b=> b.onclick = ()=> delJuicio(b.getAttribute('data-del')));
+    }
+
+    function delJuicio(id){
+      if(!confirm('¿Eliminar juicio y todos sus datos?')) return;
+      const ix = state.juicios.findIndex(x=>x.id===id);
+      if(ix>=0){ state.juicios.splice(ix,1); save(); $('#detalleJuicio').classList.add('hidden'); }
+    }
+
+    /* =================== Detalle de juicio =================== */
+    let currentId = null;
+    function selectJuicio(id){
+      currentId = id;
+      const j = state.juicios.find(x=>x.id===id);
+      if(!j) return;
+      $('#sec-juicios').classList.add('active');
+      $$('.section').forEach(s=>{ if(s.id!=='sec-juicios') s.classList.remove('active'); });
+      $('#detalleJuicio').classList.remove('hidden');
+      $('#dj-titulo').textContent = `${j.actor} vs ${j.demandado}`;
+      $('#dj-actor').textContent = j.actor;
+      $('#dj-demandado').textContent = j.demandado;
+      $('#dj-exp').textContent = j.expediente||'-';
+      $('#dj-fuero').textContent = j.fuero;
+      $('#dj-juzgado').textContent = j.juzgado||'-';
+      $('#dj-ciudad').textContent = j.ciudad||'-';
+      $('#dj-contrario').textContent = j.abogadoContrario||'-';
+      $('#dj-vencTotal').textContent = `${j.vtos.filter(v=>v.estado!=='Hecho').length} pendientes`;
+      renderMov(j); renderVto(j); renderCuadernos(j);
+    }
+
+    /* =================== Movimientos =================== */
+    $('#btnAddMov').onclick = ()=>{
+      if(!currentId) return alert('Primero abrí un expediente.');
+      $('#formMov').reset();
+      $('#formMov [name=fecha]').value = todayISO();
+      $('#dlgMov').showModal();
+    };
+
+    $('#dlgMov').addEventListener('close', ()=>{
+      if($('#dlgMov').returnValue!=="ok") return;
+      const j = state.juicios.find(x=>x.id===currentId);
+      const fd = new FormData($('#formMov'));
+      const mov = Object.fromEntries(fd.entries());
+      mov.id = uid();
+      if(fd.get('pdf') && fd.get('pdf').size>0){ mov.pdfName = fd.get('pdf').name; mov.pdfUrl = URL.createObjectURL(fd.get('pdf')); }
+      j.movs.unshift(mov);
+      save();
+      setTimeout(()=> $('#dlgMov').close(), 0);
+    });
+
+    function renderMov(j){
+      const body = $('#tablaMov'); body.innerHTML='';
+      $('#emptyMov').classList.toggle('hidden', j.movs.length>0);
+      j.movs.forEach(m=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${m.fecha?fmtDate(m.fecha):'-'}</td>
+          <td><span class="tag type-${m.tipo||'Otro'}">${m.tipo||'Otro'}</span></td>
+          <td>${m.resumen||''}<div class="muted-text">${(m.texto||'').slice(0,90)}</div></td>
+          <td>${m.pdfUrl?`<a class="btn" href="${m.pdfUrl}" target="_blank">Ver PDF</a>`:'-'}</td>
+          <td><button class="btn danger" data-delmov="${m.id}">Eliminar</button></td>
+        `;
+        body.appendChild(tr);
+      });
+      $$('[data-delmov]').forEach(b=> b.onclick=()=>{
+        if(!confirm('¿Eliminar movimiento?')) return;
+        const ix = j.movs.findIndex(x=>x.id===b.getAttribute('data-delmov'));
+        if(ix>=0){ j.movs.splice(ix,1); save(); }
+      });
+    }
+
+    /* =================== Vencimientos =================== */
+    function refreshAtajos(){
+      const {a1,a2,a3} = state.prefs;
+      $$('[data-atajo]').forEach(btn=>{
+        const key = btn.getAttribute('data-atajo');
+        const val = state.prefs[key.replace('pref','a')] || 0;
+        btn.textContent = val+" d";
+        btn.onclick = ()=> { $('#formVto [name=anticipar]').value = val; };
+      });
+      $('#prefA1').value = a1; $('#prefA2').value = a2; $('#prefA3').value = a3;
+    }
+
+    $('#prefA1').oninput = e=>{ state.prefs.a1 = Number(e.target.value||0); save(); refreshAtajos(); };
+    $('#prefA2').oninput = e=>{ state.prefs.a2 = Number(e.target.value||0); save(); refreshAtajos(); };
+    $('#prefA3').oninput = e=>{ state.prefs.a3 = Number(e.target.value||0); save(); refreshAtajos(); };
+
+    $('#btnAddVto').onclick = ()=>{
+      if(!currentId) return alert('Primero abrí un expediente.');
+      $('#formVto').reset();
+      $('#formVto [name=fecha]').value = todayISO();
+      refreshAtajos();
+      $('#dlgVto').showModal();
+    };
+
+    $('#dlgVto').addEventListener('close', ()=>{
+      if($('#dlgVto').returnValue!=="ok") return;
+      const j = state.juicios.find(x=>x.id===currentId);
+      const fd = new FormData($('#formVto'));
+      const v = Object.fromEntries(fd.entries());
+      v.id = uid(); v.anticipar = Number(v.anticipar||0);
+      j.vtos.unshift(v);
+      save();
+      setTimeout(()=> $('#dlgVto').close(), 0);
+    });
+
+    function renderVto(j){
+      const body = $('#tablaVto'); body.innerHTML='';
+      $('#emptyVto').classList.toggle('hidden', j.vtos.length>0);
+      j.vtos.forEach(v=>{
+        const dias = diasRestantes(v.fecha);
+        const estadoColor = v.estado==='Hecho' ? 'ok-text' : (dias<0 ? 'danger-text' : (dias<=v.anticipar ? 'warn-text' : ''));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${fmtDate(v.fecha)}</td>
+          <td>${v.detalle||'-'}</td>
+          <td>${v.anticipar||0} d</td>
+          <td class="${estadoColor}">${v.estado}${v.estado!=='Hecho' ? ` (${dias} días)` : ''}</td>
+          <td><button class="btn" data-vto-done="${v.id}">Marcar hecho</button> <button class="btn danger" data-vto-del="${v.id}">Eliminar</button></td>
+        `;
+        body.appendChild(tr);
+      });
+      $$('[data-vto-done]').forEach(b=> b.onclick=()=>{
+        const x = j.vtos.find(x=>x.id===b.getAttribute('data-vto-done')); x.estado='Hecho'; save();
+      });
+      $$('[data-vto-del]').forEach(b=> b.onclick=()=>{
+        if(!confirm('¿Eliminar vencimiento?')) return;
+        const ix = j.vtos.findIndex(x=>x.id===b.getAttribute('data-vto-del'));
+        if(ix>=0){ j.vtos.splice(ix,1); save(); }
+      });
+    }
+
+    function diasRestantes(fechaISO){
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const f = new Date(fechaISO); f.setHours(0,0,0,0);
+      return Math.round((f - hoy) / 86400000);
+    }
+
+    /* =================== Agenda global =================== */
+    function renderAgenda(){
+      const dias = Number($('#agendaDias').value||30);
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const hasta = new Date(hoy.getTime() + (dias*86400000));
+      const items = [];
+      state.juicios.forEach(j=>{
+        j.vtos.forEach(v=>{
+          const f = new Date(v.fecha); f.setHours(0,0,0,0);
+          if(f>=hoy && f<=hasta){ items.push({ j, v, f }); }
+        })
+      });
+      items.sort((a,b)=> a.f - b.f);
+      const body = $('#agendaBody'); body.innerHTML='';
+      items.forEach(({j,v})=>{
+        const dias = diasRestantes(v.fecha);
+        const estadoColor = v.estado==='Hecho' ? 'ok-text' : (dias<0 ? 'danger-text' : (dias<=v.anticipar ? 'warn-text' : ''));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${fmtDate(v.fecha)}</td>
+          <td><button class="btn" data-open="${j.id}">${j.actor} vs ${j.demandado}</button></td>
+          <td>${v.detalle||'-'}</td>
+          <td>${v.anticipar||0} d</td>
+          <td class="${estadoColor}">${v.estado}${v.estado!=='Hecho' ? ` (${dias} días)` : ''}</td>
+        `;
+        body.appendChild(tr);
+      });
+      $('#agendaVacia').classList.toggle('hidden', items.length>0);
+      $$('[data-open]').forEach(b=> b.onclick = ()=> selectJuicio(b.getAttribute('data-open')));
+    }
+    $('#btnRefrescarAgenda').onclick = renderAgenda;
+
+    /* =================== Cuadernos de prueba =================== */
+    $('#btnAddCuaderno').onclick = ()=>{
+      if(!currentId) return alert('Primero abrí un expediente.');
+      $('#formCuaderno').reset();
+      $('#dlgCuaderno').showModal();
+    }
+    $('#dlgCuaderno').addEventListener('close', ()=>{
+      if($('#dlgCuaderno').returnValue!=="ok") return;
+      const j = state.juicios.find(x=>x.id===currentId);
+      const fd = new FormData($('#formCuaderno'));
+      const c = Object.fromEntries(fd.entries()); c.id = uid();
+      c.docs = []; // adjuntos simples (URLs temporales dentro de la sesión)
+      j.cuadernos.push(c); save();
+    });
+
+    function renderCuadernos(j){
+      const cont = $('#listaCuadernos'); cont.innerHTML='';
+      $('#emptyCua').classList.toggle('hidden', j.cuadernos.length>0);
+      j.cuadernos.forEach(c=>{
+        const row = document.createElement('div'); row.className='row';
+        row.innerHTML = `
+          <div class="meta">
+            <span class="tag">${c.tipo}</span>
+            <strong>${c.nombre||'-'}</strong>
+            <span class="muted-text">${(c.notas||'').slice(0,80)}</span>
+          </div>
+          <div class="meta">
+            <label class="btn" for="file-${c.id}">Adjuntar PDF</label>
+            <input id="file-${c.id}" type="file" class="hidden" accept="application/pdf" />
+            <button class="btn" data-ver="${c.id}">Ver</button>
+            <button class="btn danger" data-delc="${c.id}">Eliminar</button>
+          </div>
+        `;
+        cont.appendChild(row);
+        const file = $('#file-'+c.id);
+        file.onchange = ()=>{
+          const f = file.files[0]; if(!f) return;
+          c.docs.push({name:f.name,url:URL.createObjectURL(f)}); save();
+        }
+      });
+      $$('[data-ver]').forEach(b=> b.onclick = ()=>{
+        const c = j.cuadernos.find(x=>x.id===b.getAttribute('data-ver'));
+        if(!c) return;
+        const html = `<h3 style="margin-top:0">${c.tipo} – ${c.nombre||''}</h3>`+
+          `<div class='muted-text' style='margin:6px 0 12px'>${c.notas||''}</div>`+
+          (c.docs.length? c.docs.map(d=>`<div class='row'><div>${d.name}</div><a class='btn' target='_blank' href='${d.url}'>Abrir</a></div>`).join('') : `<div class='empty'>Sin adjuntos</div>`);
+        const w = window.open('', '_blank');
+        w.document.write(`<body style='background:#0b122b;color:#e5e7eb;font-family:system-ui;padding:16px'>${html}</body>`);
+      });
+      $$('[data-delc]').forEach(b=> b.onclick = ()=>{
+        if(!confirm('¿Eliminar cuaderno?')) return;
+        const ix = j.cuadernos.findIndex(x=>x.id===b.getAttribute('data-delc'));
+        if(ix>=0){ j.cuadernos.splice(ix,1); save(); }
+      });
+    }
+
+    /* =================== Escritos =================== */
+    $('#btnExportDoc').onclick = ()=>{
+      const titulo = $('#escTitulo').value || 'Escrito';
+      const blob = new Blob([$('#escContenido').value||''], {type:'text/plain'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${titulo}.txt`; a.click();
+    };
+
+    $('#btnAdjuntarEscrito').onclick = ()=>{
+      if(!currentId) return alert('Abrí un expediente para asociar el escrito.');
+      const j = state.juicios.find(x=>x.id===currentId);
+      if(!j.movs.length) return alert('Primero creá un movimiento para asociar el escrito.');
+      const m = j.movs[0]; // último
+      m.texto = (m.texto||'') + '\n\n' + ($('#escTitulo').value? ('TÍTULO: '+$('#escTitulo').value+'\n') : '') + ($('#escContenido').value||'');
+      save(); alert('Escrito asociado al último movimiento.');
+    };
+
+    /* =================== Import/Export/Backup =================== */
+    $('#btnExport').onclick = ()=>{
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `legal-mvp-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    };
+    $('#btnBackup').onclick = ()=> $('#btnExport').click();
+    $('#importFile').onchange = (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); if(confirm('Esto reemplazará tus datos locales. ¿Continuar?')){ Object.assign(state, data); save(); alert('Importación exitosa.'); } }catch(err){ alert('Archivo no válido'); } };
+      reader.readAsText(f);
+    };
+
+    $('#btnBorrarTodo').onclick = ()=>{
+      if(!confirm('¿Borrar TODOS los datos locales?')) return;
+      localStorage.removeItem(DB_KEY);
+      state.juicios = []; save(); render(); alert('Datos borrados del navegador.');
+    }
+
+    /* =================== Render principal =================== */
+    function render(){
+      renderJuicios();
+      if(currentId){ selectJuicio(currentId); }
+      renderAgenda();
+      refreshAtajos();
+    }
+
+    /* =================== Inicialización =================== */
+    load();
+    render();
+  </script>
+</body>
+</html>
