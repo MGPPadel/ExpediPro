@@ -1,0 +1,18 @@
+{
+  "juicios": [
+    {
+      "id": 1,
+      "cliente": "Juan Pérez",
+      "expediente": "EXP-001/2025",
+      "estado": "En curso",
+      "descripcion": "Demanda laboral por despido injustificado"
+    },
+    {
+      "id": 2,
+      "cliente": "María López",
+      "expediente": "EXP-002/2025",
+      "estado": "Finalizado",
+      "descripcion": "Juicio civil por daños y perjuicios"
+    }
+  ]
+}
