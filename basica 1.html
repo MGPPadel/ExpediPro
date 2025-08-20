@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AbogApp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+    }
+    /* LOGIN */
+    #login {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: center;
+    }
+    #login-box input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #login-box button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #logout {
+      float: right;
+      margin: 10px;
+      cursor: pointer;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <section id="login">
+    <div id="login-box">
+      <h2>Iniciar Sesión</h2>
+      <input type="email" id="email" placeholder="Correo">
+      <input type="password" id="password" placeholder="Contraseña">
+      <button onclick="login()">Ingresar</button>
+    </div>
+  </section>
+
+  <!-- APP COMPLETA -->
+  <section id="app" style="display:none;">
+    <span id="logout" onclick="logout()">🔒 Cerrar Sesión</span>
+
+    <!-- 🔹 AQUI PEGUÉ TU APP ORIGINAL -->
+    <header style="background:#4CAF50; padding:1rem; color:white; text-align:center;">
+      <h1>📚 AbogApp</h1>
+      <p>Gestión de clientes y juicios</p>
+    </header>
+
+    <main style="padding:20px;">
+      <!-- Panel de control -->
+      <section style="margin-bottom:20px;">
+        <h2>📊 Resumen Rápido</h2>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px;">
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>👥 Clientes</h3>
+            <p id="total-clientes">12</p>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>⚖️ Juicios Activos</h3>
+            <p id="total-juicios">7</p>
+          </div>
+          <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>📅 Próximas Citas</h3>
+            <p id="total-citas">3</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lista de clientes -->
+      <section>
+        <h2>👥 Clientes</h2>
+        <table border="1" width="100%" style="border-collapse:collapse; background:white;">
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Juicio</th>
+          </tr>
+          <tr><td>Ana Pérez</td><td>+54 11 1234-5678</td><td>Laboral</td></tr>
+          <tr><td>Carlos Gómez</td><td>+54 11 8765-4321</td><td>Penal</td></tr>
+        </table>
+      </section>
+
+      <!-- Agenda -->
+      <section style="margin-top:20px;">
+        <h2>📅 Agenda</h2>
+        <ul style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+          <li>20/08 - Reunión con Ana Pérez</li>
+          <li>22/08 - Audiencia caso Gómez</li>
+        </ul>
+      </section>
+    </main>
+  </section>
+
+  <script>
+    function login() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+
+      if (email === "admin@mail.com" && pass === "1234") {
+        localStorage.setItem("logueado", "true");
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      } else {
+        alert("❌ Usuario o contraseña incorrectos");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("logueado");
+      document.getElementById("login").style.display = "flex";
+      document.getElementById("app").style.display = "none";
+    }
+
+    // Mantener sesión si ya estaba logueado
+    window.onload = function() {
+      if (localStorage.getItem("logueado") === "true") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
