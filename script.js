@@ -1,29 +1,160 @@
-  // ---------- DATOS DE LA APLICACIÓN ----------
-    let contactos = [
-        {id: 1, nombre: 'Juan Pérez', telefono: '1122334455', email: 'juan.perez@email.com', dni: '30123456', domicilio: 'Av. Siempre Viva 123', notas: 'Cliente principal'},
-        {id: 2, nombre: 'María García', telefono: '9988776655', email: 'maria.garcia@email.com', dni: '32987654', domicilio: 'Calle Falsa 456', notas: 'Parte demandada'},
-        {id: 3, nombre: 'Carlos López', telefono: '5544332211', email: 'c.lopez@email.com', dni: '28555666', domicilio: 'Pje. Corto 789', notas: ''},
-        {id: 4, nombre: 'Ana Martínez', telefono: '1234567890', email: 'a.martinez@email.com', dni: '35111222', domicilio: 'Blvd. Ancho 101', notas: 'Testigo clave'},
-    ];
-    let casos = [
-      {id: 1, expediente: "123/25", actorId: 1, demandadoId: 2, objeto: "Cobro de pesos", fuero: "Civil", juzgado: "Juzgado 2", provincia: "CABA", abogado: "Dr. López", telefono: "123456789", movimientos: [], pruebas: []},
-      {id: 2, expediente: "456/25", actorId: 3, demandadoId: 4, objeto: "Despido", fuero: "Laboral", juzgado: "Juzgado 5", provincia: "Bs As", abogado: "Dr. Pérez", telefono: "987654321", movimientos: [], pruebas: []}
-    ];
-    let vencimientos = [
-      {id: 1, titulo: "Audiencia Testimonial", fecha: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0], casoId: 1, recordatorio: 5},
-      {id: 2, titulo: "Presentar Escrito", fecha: new Date(new Date().setDate(new Date().getDate() + 9)).toISOString().split('T')[0], casoId: 2, recordatorio: 10},
-      {id: 3, titulo: "Vencimiento de Plazo", fecha: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], casoId: null, recordatorio: 1}
-    ];
-    let facturacion = [
-        {id: 1, concepto: 'Honorarios por demanda', fecha: '2025-08-20', monto: 50000, tipo: 'Honorarios', estado: 'Pagado', casoId: 1},
-        {id: 2, concepto: 'Gasto de sellado', fecha: '2025-08-21', monto: 3500, tipo: 'Gasto con Comprobante', estado: 'Pendiente', casoId: 1},
-        {id: 3, concepto: 'Adelanto de gastos', fecha: '2025-08-22', monto: 15000, tipo: 'Honorarios', estado: 'Pendiente', casoId: 2},
-    ];
-    let tareas = [
-        {id: 1, descripcion: 'Llamar a perito contador', fechaLimite: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], estado: 'Pendiente', casoId: 1},
-        {id: 2, descripcion: 'Preparar alegatos', fechaLimite: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0], estado: 'Pendiente', casoId: 2},
-        {id: 3, descripcion: 'Renovar matrícula', fechaLimite: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], estado: 'Completada', casoId: null},
-    ];
+// Importar funciones de Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged,
+    signOut,
+    sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    doc, 
+    updateDoc, 
+    deleteDoc,
+    query,
+    onSnapshot 
+} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBMyDgQDU58NZhC4_4jupw1QoVJpKo6QXo",
+  authDomain: "abogapp-c3166.firebaseapp.com",
+  projectId: "abogapp-c3166",
+  storageBucket: "abogapp-c3166.appspot.com",
+  messagingSenderId: "138541502606",
+  appId: "1:138541502606:web:ec236d8e1a47031bd439df",
+  measurementId: "G-K2JH9J257J"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Referencias a elementos de autenticación
+const authContainer = document.getElementById('auth-container');
+const appContainer = document.getElementById('app-container');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const forgotPasswordForm = document.getElementById('forgot-password-form');
+const showRegisterLink = document.getElementById('show-register');
+const showLoginLink = document.getElementById('show-login');
+const showForgotPasswordLink = document.getElementById('show-forgot-password');
+const backToLoginLink = document.getElementById('back-to-login');
+const toast = document.getElementById("toast");
+let toastTimeout = null;
+
+function showToast(msg = "Acción realizada", type = "success", ms = 2600) {
+  toast.textContent = msg;
+  toast.className = 'toast ' + type + ' show';
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, ms);
+}
+
+// Lógica para mostrar/ocultar formularios de login/registro
+showRegisterLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.classList.add('hidden');
+    forgotPasswordForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+});
+
+showLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerForm.classList.add('hidden');
+    forgotPasswordForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+});
+
+showForgotPasswordLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.classList.add('hidden');
+    registerForm.classList.add('hidden');
+    forgotPasswordForm.classList.remove('hidden');
+});
+
+backToLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    forgotPasswordForm.classList.add('hidden');
+    registerForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+});
+
+// Manejar registro
+registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            showToast('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.', 'success');
+            registerForm.reset();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        })
+        .catch((error) => {
+            showToast(`Error al registrar: ${error.message}`, 'error');
+        });
+});
+
+// Manejar inicio de sesión
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    signInWithEmailAndPassword(auth, email, password)
+        .catch((error) => {
+            showToast(`Error al iniciar sesión: ${error.message}`, 'error');
+        });
+});
+
+// Manejar olvido de contraseña
+forgotPasswordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value;
+    sendPasswordResetEmail(auth, email)
+        .then(() => {
+            showToast('Se ha enviado un enlace para restablecer tu contraseña a tu email.', 'success');
+            forgotPasswordForm.reset();
+            forgotPasswordForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        })
+        .catch((error) => {
+            showToast(`Error: ${error.message}`, 'error');
+        });
+});
+
+// Observador de estado de autenticación
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // Usuario ha iniciado sesión
+        authContainer.classList.add('hidden');
+        if (!appContainer.innerHTML.trim()) {
+            const template = document.getElementById('app-template');
+            appContainer.innerHTML = template.innerHTML;
+        }
+        appContainer.classList.remove('hidden');
+        initializeAppLogic(user.uid);
+    } else {
+        // Usuario ha cerrado sesión
+        authContainer.classList.remove('hidden');
+        appContainer.classList.add('hidden');
+        appContainer.innerHTML = ''; // Limpiar el contenido de la app al cerrar sesión
+    }
+});
+
+// Función principal que se ejecuta después del login
+function initializeAppLogic(userId) {
+    // ---------- DATOS DE LA APLICACIÓN ----------
+    let contactos = [];
+    let casos = [];
+    let vencimientos = [];
+    let facturacion = [];
+    let tareas = [];
 
     // ---------- ESTADO DE LA UI ----------
     let currentCaseId = null;
@@ -43,9 +174,9 @@
     let searchQuery = '';
     let quillEditor = null;
     let calendarDate = new Date();
-
+    
     // ---------- REFERENCIAS DOM (agrupadas por funcionalidad) ----------
-    const toast = document.getElementById("toast");
+    const logoutBtnApp = document.getElementById('logout-btn-app');
     // Vistas y Pestañas
     const tabDashboard = document.getElementById("tab-dashboard");
     const tabCasos = document.getElementById("tab-casos");
@@ -186,14 +317,6 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === "Escape") { allModals.forEach(m => closeModal(m)); }
     });
-
-    let toastTimeout = null;
-    function showToast(msg = "Acción realizada", type = "success", ms = 2600) {
-      toast.textContent = msg;
-      toast.className = 'toast ' + type + ' show';
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, ms);
-    }
 
     function clearFieldError(input) {
       if (!input) return;
@@ -1522,7 +1645,3 @@
     }
     
     initialize();
-
-  </script>
-</body>
-</html>
