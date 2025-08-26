@@ -132,10 +132,32 @@
 
     <!-- Contenido de las vistas -->
     <div id="dashboard-view">
-        <header class="mb-6">
-            <h1 class="text-3xl font-bold text-white">Panel Principal</h1>
-            <p class="text-gray-400">Resumen de la actividad de su estudio.</p>
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Panel Principal</h1>
+                <p class="text-gray-400">Bienvenido, <span id="user-greeting"></span>. Desde aquí puede acceder a todas las funciones.</p>
+            </div>
         </header>
+
+        <!-- Acciones Rápidas -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-white mb-4">Acciones Rápidas</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <button id="quick-add-case" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
+                    <span class="text-2xl">⚖️</span>
+                    <span class="block mt-2">Nuevo Caso</span>
+                </button>
+                <button id="quick-add-vencimiento" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
+                    <span class="text-2xl">🗓️</span>
+                    <span class="block mt-2">Nuevo Vencimiento</span>
+                </button>
+                <button id="quick-add-tarea" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
+                    <span class="text-2xl">✅</span>
+                    <span class="block mt-2">Nueva Tarea</span>
+                </button>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="space-y-6">
                 <div class="dashboard-card">
@@ -169,8 +191,8 @@
             <tr>
               <th class="px-6 py-3 sortable-header" data-sort="expediente">N° Expediente <span class="sort-icon"></span></th>
               <th class="px-6 py-3 sortable-header" data-sort="caratula">Carátula <span class="sort-icon"></span></th>
-              <th class="px-6 py-3 sortable-header" data-sort="fuero">Fuero <span class="sort-icon"></span></th>
-              <th class="px-6 py-3 sortable-header" data-sort="juzgado">Nominación <span class="sort-icon"></span></th>
+              <th class="px-6 py-3 sortable-header" data-sort="estadoProcesal">Estado Procesal <span class="sort-icon"></span></th>
+              <th class="px-6 py-3 sortable-header" data-sort="juez">Juez <span class="sort-icon"></span></th>
               <th class="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -337,57 +359,107 @@
     </div>
   </div>
   <div id="case-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
-    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6 modal-card">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl modal-content p-6 modal-card">
       <div class="flex justify-between items-start mb-2">
         <h2 id="case-modal-title" class="text-xl font-bold text-white">Agregar Nuevo Caso</h2>
         <button id="x-case-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
       </div>
       <form id="case-form" class="space-y-4">
         <input type="hidden" id="case-id">
-        <div>
-          <label class="block text-sm text-gray-300 required-dot">Actor</label>
-          <input type="text" id="case-actorNombre" placeholder="Nombre completo del actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-300 required-dot">Expediente</label>
+              <input type="text" id="case-expediente" placeholder="N° de Expediente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            </div>
+             <div>
+              <label class="block text-sm text-gray-300 required-dot">Juez</label>
+              <input type="text" id="case-juez" placeholder="Juez a cargo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300 required-dot">Demandado</label>
-          <input type="text" id="case-demandadoNombre" placeholder="Nombre completo del demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-300 required-dot">Actor</label>
+              <input type="text" id="case-actorNombre" placeholder="Nombre completo del actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-300 required-dot">Demandado</label>
+              <input type="text" id="case-demandadoNombre" placeholder="Nombre completo del demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300 required-dot">N° Expediente</label>
-          <input type="text" id="case-expediente" placeholder="N° Expediente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-gray-300 required-dot">Tipo de proceso</label>
+                <select id="case-tipoProceso" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    <option value="" disabled selected>Seleccionar tipo</option>
+                    <option>Sumario</option>
+                    <option>Ordinario</option>
+                    <option>Amparo</option>
+                    <option>Ejecucion</option>
+                    <option>Medida preparatoria</option>
+                    <option>Tutela Anticipada</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-300 required-dot">Estado Procesal</label>
+                <select id="case-estadoProcesal" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    <option value="" disabled selected>Seleccionar estado</option>
+                    <option>Demanda Iniciada</option>
+                    <option>Contestacion de demanda</option>
+                    <option>Etapa probatoria</option>
+                    <option>Sentencia de 1ra. Desfavorable</option>
+                    <option>Sent. de 1ra. Favorable</option>
+                    <option>Sent. de 2da. Instancia</option>
+                    <option>Sentencia de Corte</option>
+                    <option>Juicio Conciliado</option>
+                </select>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300">Objeto del juicio</label>
-          <input type="text" id="case-objeto" placeholder="Objeto del juicio" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-300">Importe reclamado</label>
+              <input type="number" id="case-importeReclamado" placeholder="0.00" step="0.01" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-300">Importe a previsionar</label>
+              <input type="number" id="case-importePrevisionar" placeholder="0.00" step="0.01" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+            </div>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300 required-dot">Fuero</label>
-          <select id="case-fuero" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
-            <option value="" disabled selected>Seleccionar fuero</option>
-            <option value="Laboral">Laboral</option>
-            <option value="Civil">Civil</option>
-            <option value="Familia">Familia</option>
-            <option value="Penal">Penal</option>
-            <option value="Otro">Otro</option>
-          </select>
-          <input type="text" id="case-fuero-otro" placeholder="Si es otro, especifique" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 hidden mt-2">
+        <hr class="border-gray-600 my-4">
+        <h3 class="text-lg font-semibold text-white">Sentencia 1ra Instancia</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-gray-300">Fecha de Sentencia</label>
+                <input type="date" id="case-fechaSentencia1ra" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-300">Resultas</label>
+                <textarea id="case-resultas1ra" rows="2" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"></textarea>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300 required-dot">Nominación</label>
-          <input type="text" id="case-juzgado" placeholder="Juzgado donde está radicado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <hr class="border-gray-600 my-4">
+        <h3 class="text-lg font-semibold text-white">Sentencia 2da Instancia</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-1">
+                <label class="block text-sm text-gray-300">Sala</label>
+                <input type="text" id="case-sala" placeholder="Sala" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+            </div>
+            <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                    <label class="block text-sm text-gray-300">Fecha de Sentencia</label>
+                    <input type="date" id="case-fechaSentencia2da" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-300">Resultas</label>
+                    <textarea id="case-resultas2da" rows="2" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"></textarea>
+                </div>
+            </div>
         </div>
+        <hr class="border-gray-600 my-4">
         <div>
-          <label class="block text-sm text-gray-300">Provincia / Ciudad</label>
-          <input type="text" id="case-provincia" placeholder="Provincia / Ciudad" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+            <label class="block text-sm text-gray-300">Medidas cautelares/embargos</label>
+            <textarea id="case-medidasCautelares" rows="3" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"></textarea>
         </div>
-        <div>
-          <label class="block text-sm text-gray-300">Abogado de la otra parte</label>
-          <input type="text" id="case-abogado" placeholder="Abogado de la otra parte" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
-        </div>
-        <div>
-          <label class="block text-sm text-gray-300">Teléfono del abogado</label>
-          <input type="text" id="case-telefono" placeholder="Teléfono del abogado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
-        </div>
+
         <div class="flex justify-end space-x-4 pt-2">
           <button type="button" id="cancel-case-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
           <button type="submit" id="save-case-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Guardar</button>
@@ -1008,6 +1080,10 @@
     const passwordChangeForm = document.getElementById('password-change-form');
     const dayEventsModal = document.getElementById('day-events-modal');
     const closeDayEventsBtn = document.getElementById('close-day-events-btn');
+    const userGreeting = document.getElementById('user-greeting');
+    const quickAddCaseBtn = document.getElementById('quick-add-case');
+    const quickAddVencimientoBtn = document.getElementById('quick-add-vencimiento');
+    const quickAddTareaBtn = document.getElementById('quick-add-tarea');
     
     // ---------- UTILIDADES ----------
     const allModals = [caseModal, detailsModal, movementModal, vencimientoModal, pruebaFormModal, pruebaDetailModal, viewMovementModal, facturacionModal, contactoModal, tareaModal, dayEventsModal];
@@ -1112,8 +1188,8 @@
                 const caratula = normalizeString(`${c.actorNombre} vs. ${c.demandadoNombre}`.toLowerCase());
                 return normalizeString(c.expediente.toLowerCase()).includes(normalizedQuery) ||
                        caratula.includes(normalizedQuery) ||
-                       normalizeString(c.fuero.toLowerCase()).includes(normalizedQuery) ||
-                       normalizeString(c.juzgado.toLowerCase()).includes(normalizedQuery);
+                       normalizeString(c.estadoProcesal.toLowerCase()).includes(normalizedQuery) ||
+                       normalizeString(c.juez.toLowerCase()).includes(normalizedQuery);
             });
         }
         filteredCasos.sort((a, b) => {
@@ -1144,8 +1220,8 @@
         tr.innerHTML = `
           <td class="px-6 py-4">${c.expediente}</td>
           <td class="px-6 py-4">${c.actorNombre} vs. ${c.demandadoNombre}</td>
-          <td class="px-6 py-4">${c.fuero}</td>
-          <td class="px-6 py-4">${c.juzgado}</td>
+          <td class="px-6 py-4">${c.estadoProcesal}</td>
+          <td class="px-6 py-4">${c.juez}</td>
           <td class="px-6 py-4 text-right">
             <div class="flex justify-end items-center space-x-2">
                 <button class="view-btn bg-blue-600 hover:bg-blue-500 text-white text-xs px-2.5 py-1 rounded-md">Ver</button>
@@ -1223,16 +1299,10 @@
       document.getElementById('case-id').value = '';
       clearAllErrors(caseForm);
       caseModalTitle.textContent = "Agregar Nuevo Caso";
-      document.getElementById("case-fuero-otro").classList.add("hidden");
       openModal(caseModal);
     });
     xCaseBtn.addEventListener("click", () => closeModal(caseModal));
     cancelCaseBtn.addEventListener("click", () => closeModal(caseModal));
-
-    document.getElementById("case-fuero").addEventListener("change", (e) => {
-      const other = document.getElementById("case-fuero-otro");
-      e.target.value === "Otro" ? other.classList.remove("hidden") : other.classList.add("hidden");
-    });
 
     caseForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1245,9 +1315,9 @@
       if (!document.getElementById("case-actorNombre").value.trim()) { showFieldError(document.getElementById("case-actorNombre"), "Ingrese el nombre del actor."); hasError = true; }
       if (!document.getElementById("case-demandadoNombre").value.trim()) { showFieldError(document.getElementById("case-demandadoNombre"), "Ingrese el nombre del demandado."); hasError = true; }
       if (!expediente) { showFieldError(expedienteInput, "Ingrese el número de expediente."); hasError = true; }
-      if (!document.getElementById("case-fuero").value) { showFieldError(document.getElementById("case-fuero"), "Seleccione un fuero."); hasError = true; }
-      if (document.getElementById("case-fuero").value === "Otro" && !document.getElementById("case-fuero-otro").value.trim()) { showFieldError(document.getElementById("case-fuero-otro"), "Especifique el fuero."); hasError = true; }
-      if (!document.getElementById("case-juzgado").value.trim()) { showFieldError(document.getElementById("case-juzgado"), "Ingrese la nominación."); hasError = true; }
+      if (!document.getElementById("case-tipoProceso").value) { showFieldError(document.getElementById("case-tipoProceso"), "Seleccione un tipo."); hasError = true; }
+      if (!document.getElementById("case-estadoProcesal").value) { showFieldError(document.getElementById("case-estadoProcesal"), "Seleccione un estado."); hasError = true; }
+      if (!document.getElementById("case-juez").value.trim()) { showFieldError(document.getElementById("case-juez"), "Ingrese el Juez."); hasError = true; }
 
       if (expediente && casos.some(c => c.expediente.toLowerCase() === expediente.toLowerCase() && c.id !== id)) {
         showFieldError(expedienteInput, "Ya existe un expediente con ese número.");
@@ -1255,20 +1325,21 @@
       }
       if (hasError) { showToast("Corrija los errores.", "warn"); return; }
       
-      const fueroSel = document.getElementById("case-fuero").value;
-      const fueroOtro = document.getElementById("case-fuero-otro").value.trim();
-      const fuero = fueroSel === "Otro" ? fueroOtro : fueroSel;
-
       const casoData = {
+        expediente: expediente,
         actorNombre: document.getElementById("case-actorNombre").value.trim(),
         demandadoNombre: document.getElementById("case-demandadoNombre").value.trim(),
-        expediente,
-        objeto: document.getElementById("case-objeto").value.trim(),
-        fuero,
-        juzgado: document.getElementById("case-juzgado").value.trim(),
-        provincia: document.getElementById("case-provincia").value.trim(),
-        abogado: document.getElementById("case-abogado").value.trim(),
-        telefono: document.getElementById("case-telefono").value.trim(),
+        tipoProceso: document.getElementById("case-tipoProceso").value,
+        estadoProcesal: document.getElementById("case-estadoProcesal").value,
+        importeReclamado: document.getElementById("case-importeReclamado").value || 0,
+        importePrevisionar: document.getElementById("case-importePrevisionar").value || 0,
+        juez: document.getElementById("case-juez").value.trim(),
+        fechaSentencia1ra: document.getElementById("case-fechaSentencia1ra").value || null,
+        resultas1ra: document.getElementById("case-resultas1ra").value.trim(),
+        sala: document.getElementById("case-sala").value.trim(),
+        fechaSentencia2da: document.getElementById("case-fechaSentencia2da").value || null,
+        resultas2da: document.getElementById("case-resultas2da").value.trim(),
+        medidasCautelares: document.getElementById("case-medidasCautelares").value.trim(),
       };
 
       try {
@@ -1298,16 +1369,25 @@
       if (target.classList.contains("view-btn")) {
         currentCaseId = caseId;
         detailsContent.innerHTML = `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
-            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre || 'N/A'}</div></div>
-            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre || 'N/A'}</div></div>
-            <div><strong>N° Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
-            <div><strong>Objeto del juicio:</strong><div class="mt-1">${caso.objeto || "—"}</div></div>
-            <div><strong>Fuero:</strong><div class="mt-1">${caso.fuero}</div></div>
-            <div><strong>Nominación:</strong><div class="mt-1">${caso.juzgado}</div></div>
-            <div><strong>Provincia/Ciudad:</strong><div class="mt-1">${caso.provincia || "—"}</div></div>
-            <div><strong>Abogado otra parte:</strong><div class="mt-1">${caso.abogado || "—"}</div></div>
-            <div class="md:col-span-2"><strong>Teléfono del abogado:</strong><div class="mt-1">${caso.telefono || "—"}</div></div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
+            <div><strong>Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
+            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre}</div></div>
+            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre}</div></div>
+            <div><strong>Tipo de Proceso:</strong><div class="mt-1">${caso.tipoProceso}</div></div>
+            <div><strong>Estado Procesal:</strong><div class="mt-1">${caso.estadoProcesal}</div></div>
+            <div><strong>Juez:</strong><div class="mt-1">${caso.juez}</div></div>
+            <div><strong>Importe Reclamado:</strong><div class="mt-1">${formatCurrency(caso.importeReclamado)}</div></div>
+            <div><strong>Importe a Previsionar:</strong><div class="mt-1">${formatCurrency(caso.importePrevisionar)}</div></div>
+            <div class="md:col-span-3"><strong>Medidas Cautelares:</strong><div class="mt-1">${caso.medidasCautelares || '—'}</div></div>
+            <hr class="md:col-span-3 border-gray-600 my-2">
+            <div class="md:col-span-3 font-semibold text-white">Sentencia 1ra Instancia</div>
+            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia1ra || '—'}</div></div>
+            <div class="md:col-span-2"><strong>Resultas:</strong><div class="mt-1">${caso.resultas1ra || '—'}</div></div>
+            <hr class="md:col-span-3 border-gray-600 my-2">
+            <div class="md:col-span-3 font-semibold text-white">Sentencia 2da Instancia</div>
+            <div><strong>Sala:</strong><div class="mt-1">${caso.sala || '—'}</div></div>
+            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia2da || '—'}</div></div>
+            <div><strong>Resultas:</strong><div class="mt-1">${caso.resultas2da || '—'}</div></div>
           </div>
         `;
         renderMovements(caso.movimientos, movementList);
@@ -1321,22 +1401,26 @@
           caseModalTitle.textContent = "Editar Caso";
           
           document.getElementById('case-id').value = caso.id;
+          document.getElementById('case-expediente').value = caso.expediente;
           document.getElementById('case-actorNombre').value = caso.actorNombre;
           document.getElementById('case-demandadoNombre').value = caso.demandadoNombre;
-          document.getElementById('case-expediente').value = caso.expediente;
-          document.getElementById('case-objeto').value = caso.objeto;
-          document.getElementById('case-fuero').value = caso.fuero;
-          document.getElementById('case-juzgado').value = caso.juzgado;
-          document.getElementById('case-provincia').value = caso.provincia;
-          document.getElementById('case-abogado').value = caso.abogado;
-          document.getElementById('case-telefono').value = caso.telefono;
+          document.getElementById('case-tipoProceso').value = caso.tipoProceso;
+          document.getElementById('case-estadoProcesal').value = caso.estadoProcesal;
+          document.getElementById('case-importeReclamado').value = caso.importeReclamado;
+          document.getElementById('case-importePrevisionar').value = caso.importePrevisionar;
+          document.getElementById('case-juez').value = caso.juez;
+          document.getElementById('case-fechaSentencia1ra').value = caso.fechaSentencia1ra;
+          document.getElementById('case-resultas1ra').value = caso.resultas1ra;
+          document.getElementById('case-sala').value = caso.sala;
+          document.getElementById('case-fechaSentencia2da').value = caso.fechaSentencia2da;
+          document.getElementById('case-resultas2da').value = caso.resultas2da;
+          document.getElementById('case-medidasCautelares').value = caso.medidasCautelares;
           
           openModal(caseModal);
       } else if (target.classList.contains("delete-case-btn")) {
           if (confirm('¿Está seguro de que desea eliminar este caso? Se borrarán todos sus movimientos y pruebas.')) {
               try {
                 await deleteDoc(doc(db, `users/${currentUserId}/casos`, caseId));
-                // También se deberían borrar los vencimientos y facturas asociados
                 showToast('Caso eliminado 🗑️', 'success');
               } catch (error) {
                 console.error("Error deleting case: ", error);
@@ -2269,6 +2353,9 @@
             const userData = userSnap.data();
             document.getElementById('profile-nombre').value = userData.nombre || '';
             document.getElementById('profile-apellido').value = userData.apellido || '';
+            userGreeting.textContent = userData.nombre || user.email;
+        } else {
+            userGreeting.textContent = user.email;
         }
     }
 
@@ -2281,6 +2368,7 @@
             const userRef = doc(db, "users", currentUserId);
             await setDoc(userRef, { nombre, apellido }, { merge: true });
             showToast('Perfil actualizado con éxito ✅', 'success');
+            renderProfile();
         } catch (error) {
             console.error("Error updating profile: ", error);
             showToast('Error al actualizar el perfil.', 'error');
