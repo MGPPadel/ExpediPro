@@ -51,8 +51,8 @@
     .calendar-day-header { font-weight: 600; }
     .event-indicator-container { display: flex; flex-direction: column; gap: 3px; }
     .event-indicator { height: 5px; border-radius: 10px; }
-    .event-vencimiento { background-color: #3b82f6; } /* Blue */
-    .event-tarea { background-color: #f59e0b; } /* Amber */
+    .event-vencimiento { background-color: #60a5fa; } /* Blue */
+    .event-tarea { background-color: #fcd34d; } /* Amber */
     .task-completed { text-decoration: line-through; color: #6b7280; }
     .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -143,17 +143,17 @@
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-white mb-4">Acciones Rápidas</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <button id="quick-add-case" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
-                    <span class="text-2xl">⚖️</span>
-                    <span class="block mt-2">Nuevo Caso</span>
+                <button id="quick-add-case" class="bg-sky-800 hover:bg-sky-700 text-white font-semibold py-3 px-5 rounded-lg flex items-center space-x-3 transition-transform transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span>Nuevo Caso</span>
                 </button>
-                <button id="quick-add-vencimiento" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
-                    <span class="text-2xl">🗓️</span>
-                    <span class="block mt-2">Nuevo Vencimiento</span>
+                <button id="quick-add-vencimiento" class="bg-blue-800 hover:bg-blue-700 text-white font-semibold py-3 px-5 rounded-lg flex items-center space-x-3 transition-transform transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    <span>Nuevo Vencimiento</span>
                 </button>
-                <button id="quick-add-tarea" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg text-left transition-transform transform hover:scale-105">
-                    <span class="text-2xl">✅</span>
-                    <span class="block mt-2">Nueva Tarea</span>
+                <button id="quick-add-tarea" class="bg-cyan-800 hover:bg-cyan-700 text-white font-semibold py-3 px-5 rounded-lg flex items-center space-x-3 transition-transform transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>Nueva Tarea</span>
                 </button>
             </div>
         </div>
@@ -1331,8 +1331,8 @@
         demandadoNombre: document.getElementById("case-demandadoNombre").value.trim(),
         tipoProceso: document.getElementById("case-tipoProceso").value,
         estadoProcesal: document.getElementById("case-estadoProcesal").value,
-        importeReclamado: document.getElementById("case-importeReclamado").value || 0,
-        importePrevisionar: document.getElementById("case-importePrevisionar").value || 0,
+        importeReclamado: parseFloat(document.getElementById("case-importeReclamado").value) || 0,
+        importePrevisionar: parseFloat(document.getElementById("case-importePrevisionar").value) || 0,
         juez: document.getElementById("case-juez").value.trim(),
         fechaSentencia1ra: document.getElementById("case-fechaSentencia1ra").value || null,
         resultas1ra: document.getElementById("case-resultas1ra").value.trim(),
@@ -1368,31 +1368,7 @@
       
       if (target.classList.contains("view-btn")) {
         currentCaseId = caseId;
-        detailsContent.innerHTML = `
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
-            <div><strong>Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
-            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre}</div></div>
-            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre}</div></div>
-            <div><strong>Tipo de Proceso:</strong><div class="mt-1">${caso.tipoProceso}</div></div>
-            <div><strong>Estado Procesal:</strong><div class="mt-1">${caso.estadoProcesal}</div></div>
-            <div><strong>Juez:</strong><div class="mt-1">${caso.juez}</div></div>
-            <div><strong>Importe Reclamado:</strong><div class="mt-1">${formatCurrency(caso.importeReclamado)}</div></div>
-            <div><strong>Importe a Previsionar:</strong><div class="mt-1">${formatCurrency(caso.importePrevisionar)}</div></div>
-            <div class="md:col-span-3"><strong>Medidas Cautelares:</strong><div class="mt-1">${caso.medidasCautelares || '—'}</div></div>
-            <hr class="md:col-span-3 border-gray-600 my-2">
-            <div class="md:col-span-3 font-semibold text-white">Sentencia 1ra Instancia</div>
-            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia1ra || '—'}</div></div>
-            <div class="md:col-span-2"><strong>Resultas:</strong><div class="mt-1">${caso.resultas1ra || '—'}</div></div>
-            <hr class="md:col-span-3 border-gray-600 my-2">
-            <div class="md:col-span-3 font-semibold text-white">Sentencia 2da Instancia</div>
-            <div><strong>Sala:</strong><div class="mt-1">${caso.sala || '—'}</div></div>
-            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia2da || '—'}</div></div>
-            <div><strong>Resultas:</strong><div class="mt-1">${caso.resultas2da || '—'}</div></div>
-          </div>
-        `;
-        renderMovements(caso.movimientos, movementList);
-        renderPruebas(caseId);
-        renderFacturacionForCaso(caseId);
+        refreshCaseDetailsView(caseId);
         openModal(detailsModal);
       } else if (target.classList.contains("edit-case-btn")) {
           caseMode = 'edit';
@@ -1452,7 +1428,9 @@
     // ---------- LÓGICA DE MOVIMIENTOS (General) ----------
     function initializeQuillEditor(data) {
         const editorContainer = document.getElementById('mov-detalle-editor');
-        editorContainer.innerHTML = '';
+        if (editorContainer.querySelector('.ql-toolbar')) {
+            editorContainer.innerHTML = '';
+        }
         quillEditor = new Quill(editorContainer, {
             modules: {
                 toolbar: [
@@ -1490,7 +1468,10 @@
     }
 
     addMovementBtn.addEventListener('click', () => openMovementModalForContext('create', 'main'));
-    addPruebaMovementBtn.addEventListener('click', () => openMovementModalForContext('create', 'prueba'));
+    addPruebaMovementBtn.addEventListener('click', () => {
+        closeModal(pruebaDetailModal);
+        openMovementModalForContext('create', 'prueba');
+    });
 
     movementForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -2400,11 +2381,22 @@
         });
     });
 
+    // ---------- ACCIONES RÁPIDAS DEL DASHBOARD ----------
+    quickAddCaseBtn.addEventListener('click', () => addCaseBtn.click());
+    quickAddVencimientoBtn.addEventListener('click', () => addVencimientoBtn.click());
+    quickAddTareaBtn.addEventListener('click', () => addTareaBtn.click());
+
+
     // ---------- LÓGICA DEL DASHBOARD (RESTAURADA) ----------
     function renderDashboard() {
         const dashboardVencimientos = document.getElementById('dashboard-vencimientos');
         dashboardVencimientos.innerHTML = '';
         const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
         const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
         const upcomingVencimientos = vencimientos.filter(v => {
             const vDate = new Date(v.fecha + 'T00:00:00');
@@ -2416,9 +2408,15 @@
                 const caso = v.casoId ? casos.find(c => c.id === v.casoId) : null;
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800 p-3 rounded-lg text-sm';
+                let dateLabel = '';
+                if(v.fecha === todayStr) {
+                    dateLabel = `<span class="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded-full mr-2">HOY</span>`;
+                } else if (v.fecha === tomorrowStr) {
+                    dateLabel = `<span class="text-xs font-bold text-black bg-yellow-400 px-2 py-1 rounded-full mr-2">MAÑANA</span>`;
+                }
                 div.innerHTML = `
-                    <p class="font-semibold text-white">${v.titulo}</p>
-                    <p class="text-gray-400">Fecha: ${v.fecha}${caso ? ` - Caso: ${caso.expediente}` : ''}</p>
+                    <p class="font-semibold text-white">${dateLabel}${v.titulo}</p>
+                    <p class="text-gray-400 mt-1">Fecha: ${v.fecha}${caso ? ` - Caso: ${caso.expediente}` : ''}</p>
                 `;
                 dashboardVencimientos.appendChild(div);
             });
@@ -2470,9 +2468,15 @@
                 const caso = t.casoId ? casos.find(c => c.id === t.casoId) : null;
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800 p-3 rounded-lg text-sm';
+                let dateLabel = '';
+                if(t.fechaLimite === todayStr) {
+                    dateLabel = `<span class="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded-full mr-2">HOY</span>`;
+                } else if (t.fechaLimite === tomorrowStr) {
+                    dateLabel = `<span class="text-xs font-bold text-black bg-yellow-400 px-2 py-1 rounded-full mr-2">MAÑANA</span>`;
+                }
                 div.innerHTML = `
-                    <p class="font-semibold text-white">${t.descripcion}</p>
-                    <p class="text-gray-400">Límite: ${t.fechaLimite || 'Sin fecha'}${caso ? ` - Caso: ${caso.expediente}` : ''}</p>
+                    <p class="font-semibold text-white">${dateLabel}${t.descripcion}</p>
+                    <p class="text-gray-400 mt-1">Límite: ${t.fechaLimite || 'Sin fecha'}${caso ? ` - Caso: ${caso.expediente}` : ''}</p>
                 `;
                 dashboardTareas.appendChild(div);
             });
@@ -2580,6 +2584,14 @@
     });
     closeDayEventsBtn.addEventListener('click', () => closeModal(dayEventsModal));
 
+    function refreshCaseDetailsView(caseId) {
+        const caso = casos.find(c => c.id === caseId);
+        if(!caso) return;
+        renderMovements(caso.movimientos, movementList);
+        renderPruebas(caseId);
+        renderFacturacionForCaso(caseId);
+    }
+
     // ---------- INICIALIZACIÓN DE DATOS DESDE FIRESTORE ----------
     function initialize() {
         if (!currentUserId) return;
@@ -2604,6 +2616,9 @@
         unsubCasos = onSnapshot(casosRef, (snapshot) => {
             casos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateCasesView();
+            if(currentCaseId && !detailsModal.classList.contains('hidden')) {
+                refreshCaseDetailsView(currentCaseId);
+            }
         });
 
         // Listener para Vencimientos
@@ -2620,6 +2635,9 @@
         unsubFacturacion = onSnapshot(facturacionRef, (snapshot) => {
             facturacion = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFacturacion();
+            if(currentCaseId && !detailsModal.classList.contains('hidden')) {
+                refreshCaseDetailsView(currentCaseId);
+            }
         });
         
         // Listener para Tareas
