@@ -53,6 +53,8 @@
     .calendar-tooltip-item { cursor: pointer; padding: 4px; border-radius: 4px; }
     .calendar-tooltip-item:hover { background-color: #374151; }
     .task-completed { text-decoration: line-through; color: #6b7280; }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="text-gray-200">
@@ -123,10 +125,11 @@
         <button id="tab-calendario" class="tab-btn">Calendario</button>
         <button id="tab-tareas" class="tab-btn">Tareas</button>
         <button id="tab-contactos" class="tab-btn">Contactos</button>
+        <button id="tab-perfil" class="tab-btn">Perfil</button>
       </div>
     </div>
 
-    <!-- Contenido de las vistas (Dashboard, Casos, etc.) -->
+    <!-- Contenido de las vistas -->
     <div id="dashboard-view">
         <header class="mb-6">
             <h1 class="text-3xl font-bold text-white">Panel Principal</h1>
@@ -276,6 +279,48 @@
             </table>
         </main>
     </div>
+    <div id="perfil-view" class="hidden">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-white">Mi Perfil</h1>
+            <p class="text-gray-400">Gestiona tu información personal y de seguridad.</p>
+        </header>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Formulario de Datos Personales -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Datos Personales</h2>
+                <form id="profile-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300">Email</label>
+                        <p id="profile-email" class="text-gray-400 mt-1"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Nombre</label>
+                        <input type="text" id="profile-nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Apellido</label>
+                        <input type="text" id="profile-apellido" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Guardar Cambios</button>
+                </form>
+            </div>
+            <!-- Formulario de Cambio de Contraseña -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Cambiar Contraseña</h2>
+                <form id="password-change-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300">Nueva Contraseña</label>
+                        <input type="password" id="profile-new-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Confirmar Nueva Contraseña</label>
+                        <input type="password" id="profile-confirm-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Cambiar Contraseña</button>
+                </form>
+            </div>
+        </div>
+    </div>
   </div>
 
   <div id="toast" class="toast success">Acción realizada</div>
@@ -411,13 +456,16 @@
           <div id="mov-detalle-editor" class="bg-gray-900"></div>
         </div>
         <div>
-          <label class="block text-sm text-gray-300">Archivos Adjuntos (PDF)</label>
-          <input type="file" id="mov-archivos" accept="application/pdf" multiple class="w-full text-gray-300 mt-1">
+          <label class="block text-sm text-gray-300">Archivos Adjuntos</label>
+          <input type="file" id="mov-archivos" multiple class="w-full text-gray-300 mt-1">
           <div id="file-preview" class="mt-2 flex flex-wrap"></div>
         </div>
         <div class="flex justify-end space-x-4 pt-2">
           <button type="button" id="cancel-movement-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
-          <button type="submit" id="save-movement-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+          <button type="submit" id="save-movement-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+            <span class="btn-text">Guardar</span>
+            <span class="loader hidden ml-2"></span>
+          </button>
         </div>
       </form>
     </div>
@@ -666,7 +714,8 @@
       signInWithEmailAndPassword, 
       signOut, 
       onAuthStateChanged,
-      sendPasswordResetEmail
+      sendPasswordResetEmail,
+      updatePassword
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { 
       getFirestore, 
@@ -678,11 +727,19 @@
       deleteDoc, 
       onSnapshot,
       query,
-      where
+      where,
+      setDoc,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { 
+      getStorage, 
+      ref, 
+      uploadBytes, 
+      getDownloadURL,
+      deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     // --- CONFIGURACIÓN DE FIREBASE ---
-    // SOLUCIÓN: Usar la configuración específica proporcionada por el usuario.
     const firebaseConfig = {
       apiKey: "AIzaSyBMyDgQDU58NZhC4_4jupw1QoVJpKo6QXo",
       authDomain: "abogapp-c3166.firebaseapp.com",
@@ -696,6 +753,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     // --- REFERENCIAS A ELEMENTOS DEL DOM ---
     const authView = document.getElementById('auth-view');
@@ -744,7 +802,13 @@
       const email = document.getElementById('register-email').value;
       const password = document.getElementById('register-password').value;
       createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
+          // Crear documento de perfil para el nuevo usuario
+          const userRef = doc(db, "users", userCredential.user.uid);
+          await setDoc(userRef, {
+            nombre: "",
+            apellido: ""
+          });
           showToast('¡Cuenta creada con éxito!', 'success');
         })
         .catch((error) => {
@@ -806,8 +870,7 @@
         }
     }
 
-    // --- A PARTIR DE AQUÍ COMIENZA LA LÓGICA DE LA APLICACIÓN ORIGINAL ---
-    // --- PERO MODIFICADA PARA USAR FIRESTORE ---
+    // --- LÓGICA DE LA APLICACIÓN ---
 
     // ---------- DATOS DE LA APLICACIÓN (Ahora desde Firestore) ----------
     let contactos = [];
@@ -816,7 +879,6 @@
     let facturacion = [];
     let tareas = [];
     
-    // Unsubscribers para los listeners de onSnapshot
     let unsubContactos, unsubCasos, unsubVencimientos, unsubFacturacion, unsubTareas;
 
     // ---------- ESTADO DE LA UI ----------
@@ -846,6 +908,7 @@
     const tabTareas = document.getElementById("tab-tareas");
     const tabVencimientos = document.getElementById("tab-vencimientos");
     const tabFacturacion = document.getElementById("tab-facturacion");
+    const tabPerfil = document.getElementById("tab-perfil");
     const dashboardView = document.getElementById("dashboard-view");
     const casosView = document.getElementById("casos-view");
     const contactosView = document.getElementById("contactos-view");
@@ -853,6 +916,7 @@
     const tareasView = document.getElementById("tareas-view");
     const vencimientosView = document.getElementById("vencimientos-view");
     const facturacionView = document.getElementById("facturacion-view");
+    const perfilView = document.getElementById("perfil-view");
     const searchCasosInput = document.getElementById('search-casos');
     const caseListBody = document.getElementById("case-list-body");
     const addCaseBtn = document.getElementById("addCaseBtn");
@@ -929,6 +993,8 @@
     const cancelTareaBtn = document.getElementById('cancel-tarea-btn');
     const tareaForm = document.getElementById('tarea-form');
     const tareaModalTitle = document.getElementById('tarea-modal-title');
+    const profileForm = document.getElementById('profile-form');
+    const passwordChangeForm = document.getElementById('password-change-form');
     
     // ---------- UTILIDADES ----------
     const allModals = [caseModal, detailsModal, movementModal, vencimientoModal, pruebaFormModal, pruebaDetailModal, viewMovementModal, facturacionModal, contactoModal, tareaModal];
@@ -1004,19 +1070,16 @@
 
     // ---------- NAVEGACIÓN POR PESTAÑAS ----------
     function switchTab(tabName) {
-        const views = { 'dashboard': dashboardView, 'casos': casosView, 'contactos': contactosView, 'calendario': calendarioView, 'tareas': tareasView, 'vencimientos': vencimientosView, 'facturacion': facturacionView };
-        const tabs = { 'dashboard': tabDashboard, 'casos': tabCasos, 'contactos': tabContactos, 'calendario': tabCalendario, 'tareas': tabTareas, 'vencimientos': tabVencimientos, 'facturacion': tabFacturacion };
+        const views = { 'dashboard': dashboardView, 'casos': casosView, 'contactos': contactosView, 'calendario': calendarioView, 'tareas': tareasView, 'vencimientos': vencimientosView, 'facturacion': facturacionView, 'perfil': perfilView };
+        const tabs = { 'dashboard': tabDashboard, 'casos': tabCasos, 'contactos': tabContactos, 'calendario': tabCalendario, 'tareas': tabTareas, 'vencimientos': tabVencimientos, 'facturacion': tabFacturacion, 'perfil': tabPerfil };
         
         Object.keys(views).forEach(key => {
             views[key].classList.toggle('hidden', key !== tabName);
             tabs[key].classList.toggle('active', key === tabName);
         });
-        if (tabName === 'dashboard') {
-            renderDashboard();
-        }
-        if (tabName === 'calendario') {
-            renderCalendar();
-        }
+        if (tabName === 'dashboard') renderDashboard();
+        if (tabName === 'calendario') renderCalendar();
+        if (tabName === 'perfil') renderProfile();
     }
     tabDashboard.addEventListener('click', () => switchTab('dashboard'));
     tabCasos.addEventListener('click', () => switchTab('casos'));
@@ -1025,6 +1088,7 @@
     tabTareas.addEventListener('click', () => switchTab('tareas'));
     tabVencimientos.addEventListener('click', () => switchTab('vencimientos'));
     tabFacturacion.addEventListener('click', () => switchTab('facturacion'));
+    tabPerfil.addEventListener('click', () => switchTab('perfil'));
 
     // ---------- RENDERIZADO Y LÓGICA DE VISTAS ----------
     function updateCasesView() {
@@ -1355,40 +1419,68 @@
       if (!document.getElementById("mov-descripcion").value.trim()) { showFieldError(document.getElementById("mov-descripcion"), "Ingrese una descripción."); hasErr = true; }
       if (hasErr) { showToast("Corrija los errores.", "warn"); return; }
       
-      const archivosFinal = [...keptFiles, ...newFiles.map(nf => ({ id: nf.id, nombre: nf.nombre, url: nf.url }))];
-      const entry = {
-        fecha: document.getElementById("mov-fecha").value,
-        tipo: document.getElementById("mov-tipo").value,
-        descripcion: document.getElementById("mov-descripcion").value.trim(),
-        detalle: quillEditor.root.innerHTML,
-        archivos: archivosFinal,
-      };
+      const saveBtn = document.getElementById('save-movement-btn');
+      const btnText = saveBtn.querySelector('.btn-text');
+      const loader = saveBtn.querySelector('.loader');
 
-      const caso = casos.find(c => c.id === currentCaseId);
-      if (!caso) return;
-      
-      let targetMovements;
-      if (movementContext === 'prueba') {
-          const prueba = caso.pruebas.find(p => p.id === currentPruebaId);
-          targetMovements = prueba.movimientos;
-      } else {
-          targetMovements = caso.movimientos;
-      }
+      btnText.classList.add('hidden');
+      loader.classList.remove('hidden');
+      saveBtn.disabled = true;
 
-      if (movementMode === "edit" && currentMovementIndex !== null) {
-        targetMovements[currentMovementIndex] = entry;
-      } else {
-        targetMovements.push(entry);
-      }
-      
       try {
+        const uploadPromises = newFiles.map(fileObj => {
+            const filePath = `users/${currentUserId}/casos/${currentCaseId}/${Date.now()}_${fileObj.file.name}`;
+            const fileRef = ref(storage, filePath);
+            return uploadBytes(fileRef, fileObj.file).then(snapshot => getDownloadURL(snapshot.ref));
+        });
+
+        const uploadedUrls = await Promise.all(uploadPromises);
+        const newFileObjects = uploadedUrls.map((url, index) => ({
+            nombre: newFiles[index].file.name,
+            url: url,
+            path: `users/${currentUserId}/casos/${currentCaseId}/${Date.now()}_${newFiles[index].file.name}`
+        }));
+
+        const archivosFinal = [...keptFiles, ...newFileObjects];
+        
+        const entry = {
+            fecha: document.getElementById("mov-fecha").value,
+            tipo: document.getElementById("mov-tipo").value,
+            descripcion: document.getElementById("mov-descripcion").value.trim(),
+            detalle: quillEditor.root.innerHTML,
+            archivos: archivosFinal,
+        };
+
+        const caso = casos.find(c => c.id === currentCaseId);
+        if (!caso) throw new Error("Caso no encontrado");
+        
+        let targetMovements;
+        if (movementContext === 'prueba') {
+            const prueba = caso.pruebas.find(p => p.id === currentPruebaId);
+            targetMovements = prueba.movimientos;
+        } else {
+            targetMovements = caso.movimientos;
+        }
+
+        if (movementMode === "edit" && currentMovementIndex !== null) {
+            targetMovements[currentMovementIndex] = entry;
+        } else {
+            targetMovements.push(entry);
+        }
+        
         const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
         await updateDoc(caseRef, { movimientos: caso.movimientos, pruebas: caso.pruebas });
+        
         showToast("Movimiento guardado ✅", "success");
         closeModal(movementModal);
+
       } catch (error) {
         console.error("Error saving movement: ", error);
         showToast("Error al guardar el movimiento.", "error");
+      } finally {
+        btnText.classList.remove('hidden');
+        loader.classList.add('hidden');
+        saveBtn.disabled = false;
       }
     });
     
@@ -1397,8 +1489,7 @@
 
     movArchivosInput.addEventListener("change", (e) => {
       Array.from(e.target.files || []).forEach(f => {
-        const id = 'nf_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
-        newFiles.push({ id, nombre: f.name, url: URL.createObjectURL(f), file: f });
+        newFiles.push({ id: 'nf_' + Date.now() + Math.random(), file: f });
       });
       renderFilePreview();
       movArchivosInput.value = "";
@@ -1407,15 +1498,16 @@
     function renderFilePreview() {
       filePreview.innerHTML = "";
       [...keptFiles, ...newFiles].forEach((f, idx) => {
-        const isKept = idx < keptFiles.length;
+        const isKept = !!f.url;
+        const fileName = isKept ? f.nombre : f.file.name;
         const div = document.createElement('div');
         div.className = 'file-pill';
-        div.innerHTML = `<a href="${f.url}" target="_blank" class="file-link">${f.nombre}</a> <button data-idx="${idx}">✖</button>`;
+        div.innerHTML = `<span class="file-link">${fileName}</span> <button data-idx="${idx}">✖</button>`;
         div.querySelector('button').addEventListener('click', () => {
           if (isKept) {
-            if (confirm('¿Quitar este archivo guardado del movimiento?')) keptFiles.splice(idx, 1);
+             if (confirm('¿Quitar este archivo guardado del movimiento?')) keptFiles.splice(idx, 1);
           } else {
-            newFiles.splice(idx - keptFiles.length, 1);
+             newFiles.splice(idx - keptFiles.length, 1);
           }
           renderFilePreview();
         });
@@ -1491,14 +1583,24 @@
         const caso = casos.find(c => c.id === currentCaseId);
         if(!caso) return;
 
+        let movementToDelete;
         if (movementContext === 'prueba') {
             const prueba = caso.pruebas.find(p => p.id === currentPruebaId);
-            prueba.movimientos.splice(currentMovementIndex, 1);
+            movementToDelete = prueba.movimientos.splice(currentMovementIndex, 1)[0];
         } else {
-            caso.movimientos.splice(currentMovementIndex, 1);
+            movementToDelete = caso.movimientos.splice(currentMovementIndex, 1)[0];
         }
         
         try {
+            // Eliminar archivos de Storage
+            if (movementToDelete.archivos && movementToDelete.archivos.length > 0) {
+                const deletePromises = movementToDelete.archivos.map(file => {
+                    const fileRef = ref(storage, file.path);
+                    return deleteObject(fileRef);
+                });
+                await Promise.all(deletePromises);
+            }
+
             const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
             await updateDoc(caseRef, { movimientos: caso.movimientos, pruebas: caso.pruebas });
             closeModal(viewMovementModal);
@@ -2303,6 +2405,64 @@
             }
         }
     });
+    
+    // ---------- LÓGICA DE PERFIL ----------
+    async function renderProfile() {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        document.getElementById('profile-email').textContent = user.email;
+        
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            document.getElementById('profile-nombre').value = userData.nombre || '';
+            document.getElementById('profile-apellido').value = userData.apellido || '';
+        }
+    }
+
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('profile-nombre').value.trim();
+        const apellido = document.getElementById('profile-apellido').value.trim();
+        
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            await setDoc(userRef, { nombre, apellido }, { merge: true });
+            showToast('Perfil actualizado con éxito ✅', 'success');
+        } catch (error) {
+            console.error("Error updating profile: ", error);
+            showToast('Error al actualizar el perfil.', 'error');
+        }
+    });
+
+    passwordChangeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newPassword = document.getElementById('profile-new-password').value;
+        const confirmPassword = document.getElementById('profile-confirm-password').value;
+
+        if (newPassword.length < 6) {
+            showToast('La contraseña debe tener al menos 6 caracteres.', 'warn');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('Las contraseñas no coinciden.', 'warn');
+            return;
+        }
+
+        const user = auth.currentUser;
+        updatePassword(user, newPassword).then(() => {
+            showToast('Contraseña actualizada con éxito ✅', 'success');
+            passwordChangeForm.reset();
+        }).catch((error) => {
+            console.error("Error updating password: ", error);
+            showToast('Error al cambiar la contraseña. Puede que necesites volver a iniciar sesión.', 'error');
+        });
+    });
+
 
     // ---------- INICIALIZACIÓN DE DATOS DESDE FIRESTORE ----------
     function initialize() {
