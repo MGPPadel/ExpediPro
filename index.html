@@ -2587,6 +2587,28 @@
     function refreshCaseDetailsView(caseId) {
         const caso = casos.find(c => c.id === caseId);
         if(!caso) return;
+        detailsContent.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
+            <div><strong>Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
+            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre}</div></div>
+            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre}</div></div>
+            <div><strong>Tipo de Proceso:</strong><div class="mt-1">${caso.tipoProceso}</div></div>
+            <div><strong>Estado Procesal:</strong><div class="mt-1">${caso.estadoProcesal}</div></div>
+            <div><strong>Juez:</strong><div class="mt-1">${caso.juez}</div></div>
+            <div><strong>Importe Reclamado:</strong><div class="mt-1">${formatCurrency(caso.importeReclamado)}</div></div>
+            <div><strong>Importe a Previsionar:</strong><div class="mt-1">${formatCurrency(caso.importePrevisionar)}</div></div>
+            <div class="md:col-span-3"><strong>Medidas Cautelares:</strong><div class="mt-1">${caso.medidasCautelares || '—'}</div></div>
+            <hr class="md:col-span-3 border-gray-600 my-2">
+            <div class="md:col-span-3 font-semibold text-white">Sentencia 1ra Instancia</div>
+            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia1ra || '—'}</div></div>
+            <div class="md:col-span-2"><strong>Resultas:</strong><div class="mt-1">${caso.resultas1ra || '—'}</div></div>
+            <hr class="md:col-span-3 border-gray-600 my-2">
+            <div class="md:col-span-3 font-semibold text-white">Sentencia 2da Instancia</div>
+            <div><strong>Sala:</strong><div class="mt-1">${caso.sala || '—'}</div></div>
+            <div><strong>Fecha:</strong><div class="mt-1">${caso.fechaSentencia2da || '—'}</div></div>
+            <div><strong>Resultas:</strong><div class="mt-1">${caso.resultas2da || '—'}</div></div>
+          </div>
+        `;
         renderMovements(caso.movimientos, movementList);
         renderPruebas(caseId);
         renderFacturacionForCaso(caseId);
