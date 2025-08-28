@@ -342,6 +342,23 @@
                     <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Cambiar Contraseña</button>
                 </form>
             </div>
+             <!-- Gestión de Estudio -->
+            <div id="tenant-management-section" class="bg-gray-800 p-6 rounded-lg md:col-span-2 hidden">
+                <h2 class="text-xl font-semibold text-white mb-4">Gestionar Estudio</h2>
+                <form id="invite-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300">Invitar Miembro</label>
+                        <div class="flex space-x-2 mt-1">
+                            <input type="email" id="invite-email" placeholder="Email del colega" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg">Invitar</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Miembros del Estudio</h3>
+                    <ul id="members-list" class="space-y-2"></ul>
+                </div>
+            </div>
         </div>
     </div>
   </div>
@@ -811,7 +828,8 @@
       query,
       where,
       setDoc,
-      getDoc
+      getDoc,
+      writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { 
       getStorage, 
@@ -863,35 +881,85 @@
 
     // --- LÓGICA DE AUTENTICACIÓN ---
     let currentUserId = null;
+    let currentUserTenantId = null;
+    let currentUserRole = null;
     
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth, async user => {
       if (user) {
-        // Usuario ha iniciado sesión
         currentUserId = user.uid;
-        authView.classList.add('hidden');
-        appView.classList.remove('hidden');
-        initialize(); // Iniciar la aplicación principal
+        const userProfileRef = doc(db, "users", currentUserId);
+        const userProfileSnap = await getDoc(userProfileRef);
+
+        if (userProfileSnap.exists()) {
+            const userProfile = userProfileSnap.data();
+            currentUserTenantId = userProfile.tenantId;
+            currentUserRole = userProfile.role;
+            authView.classList.add('hidden');
+            appView.classList.remove('hidden');
+            initialize();
+        } else {
+            console.log("User profile not found, logging out.");
+            signOut(auth);
+        }
       } else {
         // Usuario no ha iniciado sesión
         currentUserId = null;
+        currentUserTenantId = null;
+        currentUserRole = null;
         authView.classList.remove('hidden');
         appView.classList.add('hidden');
       }
     });
 
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('register-email').value;
       const password = document.getElementById('register-password').value;
+
+      // Check for invitation
+      const invitationsRef = collection(db, "invitations");
+      const q = query(invitationsRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      let tenantId = null;
+      let role = 'abogado'; // Default role for invited users
+      let invitationId = null;
+
+      if (!querySnapshot.empty) {
+          const invitation = querySnapshot.docs[0].data();
+          tenantId = invitation.tenantId;
+          invitationId = querySnapshot.docs[0].id;
+      }
+
       createUserWithEmailAndPassword(auth, email, password)
         .then(async (userCredential) => {
-          // Crear documento de perfil para el nuevo usuario
-          const userRef = doc(db, "users", userCredential.user.uid);
-          await setDoc(userRef, {
-            nombre: "",
-            apellido: ""
-          });
-          showToast('¡Cuenta creada con éxito!', 'success');
+            const user = userCredential.user;
+            const batch = writeBatch(db);
+
+            if (!tenantId) {
+                // New user, create new tenant
+                const newTenantRef = doc(collection(db, "tenants"));
+                tenantId = newTenantRef.id;
+                role = 'owner';
+                batch.set(newTenantRef, { ownerId: user.uid, createdAt: new Date() });
+            }
+
+            const userProfileRef = doc(db, "users", user.uid);
+            batch.set(userProfileRef, {
+                email: user.email,
+                tenantId: tenantId,
+                role: role,
+                nombre: '',
+                apellido: ''
+            });
+
+            if (invitationId) {
+                const invitationRef = doc(db, "invitations", invitationId);
+                batch.delete(invitationRef);
+            }
+
+            await batch.commit();
+            showToast('¡Cuenta creada con éxito!', 'success');
         })
         .catch((error) => {
           handleAuthError(error);
@@ -1084,6 +1152,9 @@
     const quickAddCaseBtn = document.getElementById('quick-add-case');
     const quickAddVencimientoBtn = document.getElementById('quick-add-vencimiento');
     const quickAddTareaBtn = document.getElementById('quick-add-tarea');
+    const tenantManagementSection = document.getElementById('tenant-management-section');
+    const inviteForm = document.getElementById('invite-form');
+    const membersList = document.getElementById('members-list');
     
     // ---------- UTILIDADES ----------
     const allModals = [caseModal, detailsModal, movementModal, vencimientoModal, pruebaFormModal, pruebaDetailModal, viewMovementModal, facturacionModal, contactoModal, tareaModal, dayEventsModal];
@@ -1344,11 +1415,11 @@
 
       try {
         if (caseMode === 'edit') {
-            const caseRef = doc(db, `users/${currentUserId}/casos`, id);
+            const caseRef = doc(db, `tenants/${currentUserTenantId}/casos`, id);
             await updateDoc(caseRef, casoData);
             showToast("Caso actualizado con éxito ✅", "success");
         } else {
-            await addDoc(collection(db, `users/${currentUserId}/casos`), {...casoData, movimientos: [], pruebas: []});
+            await addDoc(collection(db, `tenants/${currentUserTenantId}/casos`), {...casoData, movimientos: [], pruebas: []});
             showToast("Caso creado con éxito ✅", "success");
         }
         closeModal(caseModal);
@@ -1396,7 +1467,7 @@
       } else if (target.classList.contains("delete-case-btn")) {
           if (confirm('¿Está seguro de que desea eliminar este caso? Se borrarán todos sus movimientos y pruebas.')) {
               try {
-                await deleteDoc(doc(db, `users/${currentUserId}/casos`, caseId));
+                await deleteDoc(doc(db, `tenants/${currentUserTenantId}/casos`, caseId));
                 showToast('Caso eliminado 🗑️', 'success');
               } catch (error) {
                 console.error("Error deleting case: ", error);
@@ -1492,16 +1563,16 @@
 
       try {
         const uploadPromises = newFiles.map(fileObj => {
-            const filePath = `users/${currentUserId}/casos/${currentCaseId}/${Date.now()}_${fileObj.file.name}`;
+            const filePath = `tenants/${currentUserTenantId}/casos/${currentCaseId}/${Date.now()}_${fileObj.file.name}`;
             const fileRef = ref(storage, filePath);
-            return uploadBytes(fileRef, fileObj.file).then(snapshot => getDownloadURL(snapshot.ref));
+            return uploadBytes(fileRef, fileObj.file).then(snapshot => getDownloadURL(snapshot.ref).then(url => ({url, path: snapshot.ref.fullPath})));
         });
 
-        const uploadedUrls = await Promise.all(uploadPromises);
-        const newFileObjects = uploadedUrls.map((url, index) => ({
+        const uploadedFiles = await Promise.all(uploadPromises);
+        const newFileObjects = uploadedFiles.map((fileData, index) => ({
             nombre: newFiles[index].file.name,
-            url: url,
-            path: `users/${currentUserId}/casos/${currentCaseId}/${Date.now()}_${newFiles[index].file.name}`
+            url: fileData.url,
+            path: fileData.path
         }));
 
         const archivosFinal = [...keptFiles, ...newFileObjects];
@@ -1531,7 +1602,7 @@
             targetMovements.push(entry);
         }
         
-        const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
+        const caseRef = doc(db, `tenants/${currentUserTenantId}/casos`, currentCaseId);
         await updateDoc(caseRef, { movimientos: caso.movimientos, pruebas: caso.pruebas });
         
         showToast("Movimiento guardado ✅", "success");
@@ -1664,7 +1735,7 @@
                 await Promise.all(deletePromises);
             }
 
-            const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
+            const caseRef = doc(db, `tenants/${currentUserTenantId}/casos`, currentCaseId);
             await updateDoc(caseRef, { movimientos: caso.movimientos, pruebas: caso.pruebas });
             closeModal(viewMovementModal);
             showToast('Movimiento eliminado 🗑️', 'success');
@@ -1779,7 +1850,7 @@
         }
         
         try {
-            const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
+            const caseRef = doc(db, `tenants/${currentUserTenantId}/casos`, currentCaseId);
             await updateDoc(caseRef, { pruebas: caso.pruebas });
             showToast('Cuaderno de prueba guardado ✅', 'success');
             closeModal(pruebaFormModal);
@@ -1817,7 +1888,7 @@
             if (confirm('¿Eliminar este cuaderno de prueba y todos sus movimientos?')) {
                 caso.pruebas = caso.pruebas.filter(p => p.id !== pruebaId);
                 try {
-                    const caseRef = doc(db, `users/${currentUserId}/casos`, currentCaseId);
+                    const caseRef = doc(db, `tenants/${currentUserTenantId}/casos`, currentCaseId);
                     await updateDoc(caseRef, { pruebas: caso.pruebas });
                     showToast('Cuaderno de prueba eliminado 🗑️', 'success');
                 } catch(error) {
@@ -1877,10 +1948,10 @@
 
         try {
             if (vencimientoMode === 'edit') {
-                await updateDoc(doc(db, `users/${currentUserId}/vencimientos`, id), vencimientoData);
+                await updateDoc(doc(db, `tenants/${currentUserTenantId}/vencimientos`, id), vencimientoData);
                 showToast("Vencimiento actualizado ✅", "success");
             } else {
-                await addDoc(collection(db, `users/${currentUserId}/vencimientos`), vencimientoData);
+                await addDoc(collection(db, `tenants/${currentUserTenantId}/vencimientos`), vencimientoData);
                 showToast("Vencimiento agregado ✅", "success");
             }
             closeModal(vencimientoModal);
@@ -1914,7 +1985,7 @@
         if (target.classList.contains('delete-vencimiento-btn')) {
             if (confirm('¿Está seguro de que desea eliminar este vencimiento?')) {
                 try {
-                    await deleteDoc(doc(db, `users/${currentUserId}/vencimientos`, id));
+                    await deleteDoc(doc(db, `tenants/${currentUserTenantId}/vencimientos`, id));
                     showToast('Vencimiento eliminado 🗑️', 'success');
                 } catch(error) {
                     console.error("Error deleting vencimiento: ", error);
@@ -2036,10 +2107,10 @@
         
         try {
             if (facturacionMode === 'edit') {
-                await updateDoc(doc(db, `users/${currentUserId}/facturacion`, id), itemData);
+                await updateDoc(doc(db, `tenants/${currentUserTenantId}/facturacion`, id), itemData);
                 showToast('Item actualizado ✅');
             } else {
-                await addDoc(collection(db, `users/${currentUserId}/facturacion`), itemData);
+                await addDoc(collection(db, `tenants/${currentUserTenantId}/facturacion`), itemData);
                 showToast('Item agregado ✅');
             }
             closeModal(facturacionModal);
@@ -2061,7 +2132,7 @@
         } else if (target.classList.contains('delete-facturacion-btn')) {
             if (confirm('¿Eliminar este item de facturación?')) {
                 try {
-                    await deleteDoc(doc(db, `users/${currentUserId}/facturacion`, id));
+                    await deleteDoc(doc(db, `tenants/${currentUserTenantId}/facturacion`, id));
                     showToast('Item eliminado 🗑️');
                 } catch(error) {
                     console.error("Error deleting facturacion: ", error);
@@ -2163,10 +2234,10 @@
 
         try {
             if (contactoMode === 'edit') {
-                await updateDoc(doc(db, `users/${currentUserId}/contactos`, id), contactoData);
+                await updateDoc(doc(db, `tenants/${currentUserTenantId}/contactos`, id), contactoData);
                 showToast('Contacto actualizado ✅');
             } else {
-                await addDoc(collection(db, `users/${currentUserId}/contactos`), contactoData);
+                await addDoc(collection(db, `tenants/${currentUserTenantId}/contactos`), contactoData);
                 showToast('Contacto agregado ✅');
             }
             closeModal(contactoModal);
@@ -2199,7 +2270,7 @@
         } else if (target.classList.contains('delete-contacto-btn')) {
             if (confirm('¿Eliminar este contacto? No se podrá vincular a nuevos casos.')) {
                 try {
-                    await deleteDoc(doc(db, `users/${currentUserId}/contactos`, id));
+                    await deleteDoc(doc(db, `tenants/${currentUserTenantId}/contactos`, id));
                     showToast('Contacto eliminado 🗑️');
                 } catch(error) {
                     console.error("Error deleting contacto: ", error);
@@ -2268,10 +2339,10 @@
 
         try {
             if (tareaMode === 'edit') {
-                await updateDoc(doc(db, `users/${currentUserId}/tareas`, id), tareaData);
+                await updateDoc(doc(db, `tenants/${currentUserTenantId}/tareas`, id), tareaData);
                 showToast('Tarea actualizada ✅');
             } else {
-                await addDoc(collection(db, `users/${currentUserId}/tareas`), tareaData);
+                await addDoc(collection(db, `tenants/${currentUserTenantId}/tareas`), tareaData);
                 showToast('Tarea agregada ✅');
             }
             closeModal(tareaModal);
@@ -2291,7 +2362,7 @@
         if (target.classList.contains('toggle-task-status')) {
             try {
                 const newStatus = target.checked ? 'Completada' : 'Pendiente';
-                await updateDoc(doc(db, `users/${currentUserId}/tareas`, id), { estado: newStatus });
+                await updateDoc(doc(db, `tenants/${currentUserTenantId}/tareas`, id), { estado: newStatus });
             } catch(error) {
                 console.error("Error updating task status: ", error);
                 showToast("Error al actualizar la tarea.", "error");
@@ -2310,7 +2381,7 @@
         } else if (target.classList.contains('delete-tarea-btn')) {
             if (confirm('¿Eliminar esta tarea?')) {
                 try {
-                    await deleteDoc(doc(db, `users/${currentUserId}/tareas`, id));
+                    await deleteDoc(doc(db, `tenants/${currentUserTenantId}/tareas`, id));
                     showToast('Tarea eliminada 🗑️');
                 } catch(error) {
                     console.error("Error deleting tarea: ", error);
@@ -2335,6 +2406,13 @@
             document.getElementById('profile-nombre').value = userData.nombre || '';
             document.getElementById('profile-apellido').value = userData.apellido || '';
             userGreeting.textContent = userData.nombre || user.email;
+
+            if (userData.role === 'owner') {
+                tenantManagementSection.classList.remove('hidden');
+                renderMembersList();
+            } else {
+                tenantManagementSection.classList.add('hidden');
+            }
         } else {
             userGreeting.textContent = user.email;
         }
@@ -2380,6 +2458,61 @@
             showToast('Error al cambiar la contraseña. Puede que necesites volver a iniciar sesión.', 'error');
         });
     });
+
+    inviteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailToInvite = document.getElementById('invite-email').value.trim();
+        if (!emailToInvite) {
+            showToast('Por favor, ingrese un email.', 'warn');
+            return;
+        }
+
+        try {
+            // Check if user already exists
+            const usersRef = collection(db, "users");
+            const qUser = query(usersRef, where("email", "==", emailToInvite));
+            const userSnapshot = await getDocs(qUser);
+            if (!userSnapshot.empty) {
+                showToast('Este usuario ya está registrado.', 'error');
+                return;
+            }
+
+            // Check if invitation already exists
+            const invitationsRef = collection(db, "invitations");
+            const qInvite = query(invitationsRef, where("email", "==", emailToInvite), where("tenantId", "==", currentUserTenantId));
+            const inviteSnapshot = await getDocs(qInvite);
+            if (!inviteSnapshot.empty) {
+                showToast('Ya se ha enviado una invitación a este correo.', 'warn');
+                return;
+            }
+
+            await addDoc(invitationsRef, {
+                email: emailToInvite,
+                tenantId: currentUserTenantId,
+                invitedBy: auth.currentUser.email,
+                createdAt: new Date()
+            });
+            showToast('Invitación enviada con éxito.', 'success');
+            inviteForm.reset();
+        } catch (error) {
+            console.error("Error sending invitation: ", error);
+            showToast('Error al enviar la invitación.', 'error');
+        }
+    });
+
+    async function renderMembersList() {
+        membersList.innerHTML = '';
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("tenantId", "==", currentUserTenantId));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            const member = doc.data();
+            const li = document.createElement('li');
+            li.className = 'bg-gray-700 p-2 rounded-lg flex justify-between items-center';
+            li.innerHTML = `<span>${member.nombre} ${member.apellido} (${member.email})</span> <span class="text-xs uppercase font-bold">${member.role}</span>`;
+            membersList.appendChild(li);
+        });
+    }
 
     // ---------- ACCIONES RÁPIDAS DEL DASHBOARD ----------
     quickAddCaseBtn.addEventListener('click', () => addCaseBtn.click());
@@ -2616,7 +2749,7 @@
 
     // ---------- INICIALIZACIÓN DE DATOS DESDE FIRESTORE ----------
     function initialize() {
-        if (!currentUserId) return;
+        if (!currentUserId || !currentUserTenantId) return;
         
         // Detener listeners anteriores si existen
         if (unsubContactos) unsubContactos();
@@ -2626,15 +2759,15 @@
         if (unsubTareas) unsubTareas();
 
         // Listener para Contactos
-        const contactosRef = collection(db, `users/${currentUserId}/contactos`);
+        const contactosRef = collection(db, `tenants/${currentUserTenantId}/contactos`);
         unsubContactos = onSnapshot(contactosRef, (snapshot) => {
             contactos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderContactos();
-            updateCasesView(); // Actualizar carátulas en casos
+            updateCasesView(); 
         });
 
         // Listener para Casos
-        const casosRef = collection(db, `users/${currentUserId}/casos`);
+        const casosRef = collection(db, `tenants/${currentUserTenantId}/casos`);
         unsubCasos = onSnapshot(casosRef, (snapshot) => {
             casos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateCasesView();
@@ -2644,7 +2777,7 @@
         });
 
         // Listener para Vencimientos
-        const vencimientosRef = collection(db, `users/${currentUserId}/vencimientos`);
+        const vencimientosRef = collection(db, `tenants/${currentUserTenantId}/vencimientos`);
         unsubVencimientos = onSnapshot(vencimientosRef, (snapshot) => {
             vencimientos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderVencimientos();
@@ -2653,7 +2786,7 @@
         });
 
         // Listener para Facturación
-        const facturacionRef = collection(db, `users/${currentUserId}/facturacion`);
+        const facturacionRef = collection(db, `tenants/${currentUserTenantId}/facturacion`);
         unsubFacturacion = onSnapshot(facturacionRef, (snapshot) => {
             facturacion = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFacturacion();
@@ -2663,7 +2796,7 @@
         });
         
         // Listener para Tareas
-        const tareasRef = collection(db, `users/${currentUserId}/tareas`);
+        const tareasRef = collection(db, `tenants/${currentUserTenantId}/tareas`);
         unsubTareas = onSnapshot(tareasRef, (snapshot) => {
             tareas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderTareas();
@@ -2672,6 +2805,7 @@
         });
 
         switchTab('dashboard');
+        renderProfile();
     }
 
   </script>
