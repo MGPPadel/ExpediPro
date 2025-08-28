@@ -60,13 +60,11 @@
 </head>
 <body class="text-gray-200">
 
-  <!-- Vista de Autenticación -->
   <div id="auth-view">
     <div class="min-h-screen flex items-center justify-center bg-gray-900">
       <div class="max-w-md w-full bg-gray-800 p-8 rounded-xl shadow-lg">
         <img src="https://i.postimg.cc/RFVHhQcb/LOGO-SIN-FONDO-LETRA-BLANCA.png" alt="ExpediPro Logo" class="h-12 mx-auto mb-6">
         
-        <!-- Formulario de Inicio de Sesión -->
         <form id="login-form">
           <h2 class="text-2xl font-bold text-center text-white mb-6">Iniciar Sesión</h2>
           <div class="space-y-4">
@@ -88,7 +86,6 @@
           </p>
         </form>
 
-        <!-- Formulario de Registro -->
         <form id="register-form" class="hidden">
           <h2 class="text-2xl font-bold text-center text-white mb-6">Crear Cuenta</h2>
           <div class="space-y-4">
@@ -110,7 +107,6 @@
     </div>
   </div>
 
-  <!-- Vista Principal de la Aplicación -->
   <div id="app-view" class="hidden container mx-auto p-4 md:p-8">
     <header class="flex justify-between items-center mb-6">
         <img src="https://i.postimg.cc/RFVHhQcb/LOGO-SIN-FONDO-LETRA-BLANCA.png" alt="Exped-Pro Logo" class="h-10">
@@ -130,7 +126,6 @@
       </div>
     </div>
 
-    <!-- Contenido de las vistas -->
     <div id="dashboard-view">
         <header class="flex justify-between items-center mb-6">
             <div>
@@ -139,7 +134,6 @@
             </div>
         </header>
 
-        <!-- Acciones Rápidas -->
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-white mb-4">Acciones Rápidas</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -170,6 +164,10 @@
                 </div>
             </div>
             <div class="space-y-6">
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-semibold text-white mb-4">Miembros conectados</h2>
+                    <div id="dashboard-presence" class="space-y-2"></div>
+                </div>
                 <div class="dashboard-card">
                     <h2 class="text-xl font-semibold text-white mb-4">Tareas Pendientes</h2>
                     <div id="dashboard-tareas" class="space-y-3"></div>
@@ -212,7 +210,7 @@
                         <th class="px-6 py-3">Nombre y Apellido</th>
                         <th class="px-6 py-3">Teléfono</th>
                         <th class="px-6 py-3">Email</th>
-                        <th class="px-6 py-3">DNI</th>
+                        <th class="px-6 py-3">Tipo</th>
                         <th class="px-6 py-3 text-right">Acciones</th>
                     </tr>
                 </thead>
@@ -308,42 +306,7 @@
             <p class="text-gray-400">Gestiona tu información personal y de seguridad.</p>
         </header>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Formulario de Datos Personales -->
-            <div class="bg-gray-800 p-6 rounded-lg">
-                <h2 class="text-xl font-semibold text-white mb-4">Datos Personales</h2>
-                <form id="profile-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-gray-300">Email</label>
-                        <p id="profile-email" class="text-gray-400 mt-1"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300">Nombre</label>
-                        <input type="text" id="profile-nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300">Apellido</label>
-                        <input type="text" id="profile-apellido" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Guardar Cambios</button>
-                </form>
-            </div>
-            <!-- Formulario de Cambio de Contraseña -->
-            <div class="bg-gray-800 p-6 rounded-lg">
-                <h2 class="text-xl font-semibold text-white mb-4">Cambiar Contraseña</h2>
-                <form id="password-change-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-gray-300">Nueva Contraseña</label>
-                        <input type="password" id="profile-new-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300">Confirmar Nueva Contraseña</label>
-                        <input type="password" id="profile-confirm-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
-                    </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Cambiar Contraseña</button>
-                </form>
-            </div>
-             <!-- Gestión de Estudio -->
-            <div id="tenant-management-section" class="bg-gray-800 p-6 rounded-lg md:col-span-2 hidden">
+             <div id="tenant-management-section" class="bg-gray-800 p-6 rounded-lg md:col-span-2 hidden">
                 <h2 class="text-xl font-semibold text-white mb-4">Gestionar Estudio</h2>
                 <form id="invite-form" class="space-y-4">
                     <div>
@@ -359,13 +322,49 @@
                     <ul id="members-list" class="space-y-2"></ul>
                 </div>
             </div>
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Datos Personales</h2>
+                <form id="profile-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300">Email</label>
+                        <p id="profile-email" class="text-gray-400 mt-1"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Nombre</label>
+                        <input type="text" id="profile-nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Apellido</label>
+                        <input type="text" id="profile-apellido" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Última conexión</label>
+                        <p id="profile-last-seen" class="text-gray-400 mt-1">—</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Guardar Cambios</button>
+                </form>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Cambiar Contraseña</h2>
+                <form id="password-change-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300">Nueva Contraseña</label>
+                        <input type="password" id="profile-new-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300">Confirmar Nueva Contraseña</label>
+                        <input type="password" id="profile-confirm-password" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg mt-2">Cambiar Contraseña</button>
+                </form>
+            </div>
         </div>
     </div>
   </div>
 
   <div id="toast" class="toast success">Acción realizada</div>
 
-  <!-- Modales de la aplicación -->
   <div id="day-events-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
     <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6 modal-card">
       <div class="flex justify-between items-start mb-4">
@@ -393,15 +392,45 @@
               <input type="text" id="case-juez" placeholder="Juez a cargo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
             </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-gray-300 required-dot">Actor</label>
-              <input type="text" id="case-actorNombre" placeholder="Nombre completo del actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        
+        <div class="p-4 border border-gray-700 rounded-lg space-y-3">
+            <h3 class="font-semibold text-white text-md">Parte Actora</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm text-gray-300 required-dot">Nombre</label>
+                  <input type="text" id="case-actorNombre" placeholder="Nombre del actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-300 required-dot">Apellido</label>
+                  <input type="text" id="case-actorApellido" placeholder="Apellido del actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                </div>
             </div>
-            <div>
-              <label class="block text-sm text-gray-300 required-dot">Demandado</label>
-              <input type="text" id="case-demandadoNombre" placeholder="Nombre completo del demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+             <div>
+                <label class="block text-sm text-gray-300">Vincular con Contacto (Opcional)</label>
+                <select id="case-actor-contact-id" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                    <option value="">Seleccionar de la agenda...</option>
+                </select>
+             </div>
+        </div>
+
+        <div class="p-4 border border-gray-700 rounded-lg space-y-3">
+            <h3 class="font-semibold text-white text-md">Parte Demandada</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm text-gray-300 required-dot">Nombre</label>
+                  <input type="text" id="case-demandadoNombre" placeholder="Nombre del demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-300 required-dot">Apellido</label>
+                  <input type="text" id="case-demandadoApellido" placeholder="Apellido del demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                </div>
             </div>
+             <div>
+                <label class="block text-sm text-gray-300">Vincular con Contacto (Opcional)</label>
+                <select id="case-demandado-contact-id" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                     <option value="">Seleccionar de la agenda...</option>
+                </select>
+             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -479,7 +508,10 @@
 
         <div class="flex justify-end space-x-4 pt-2">
           <button type="button" id="cancel-case-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
-          <button type="submit" id="save-case-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+          <button type="submit" id="save-case-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+            <span class="btn-text">Guardar</span>
+            <span class="loader hidden ml-2"></span>
+          </button>
         </div>
       </form>
     </div>
@@ -492,15 +524,15 @@
           <button id="close-details-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
         </div>
         <div id="details-content" class="space-y-2 text-gray-300"></div>
+        
         <div class="mt-8 pt-6 border-t border-gray-700">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-white">Facturación del Caso</h3>
-                <div class="flex items-center space-x-4">
-                    <button id="generate-report-btn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm">Generar Informe (.docx)</button>
-                    <button id="add-facturacion-from-case-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-sm">➕ Agregar Item</button>
-                </div>
-            </div>
-            <div id="case-facturacion-list" class="space-y-3"></div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Movimientos del Expediente Principal</h3>
+            <button id="add-movement-btn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+              ➕ Agregar Movimiento
+            </button>
+          </div>
+          <ul id="movement-list" class="space-y-4"></ul>
         </div>
         <div class="mt-8 pt-6 border-t border-gray-700">
           <div class="flex items-center justify-between mb-4">
@@ -512,15 +544,16 @@
           <div id="prueba-list" class="space-y-3"></div>
         </div>
         <div class="mt-8 pt-6 border-t border-gray-700">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Movimientos del Expediente Principal</h3>
-            <button id="add-movement-btn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
-              ➕ Agregar Movimiento
-            </button>
-          </div>
-          <ul id="movement-list" class="space-y-4"></ul>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">Facturación del Caso</h3>
+                <div class="flex items-center space-x-4">
+                    <button id="generate-report-btn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm">Generar Informe (.docx)</button>
+                    <button id="add-facturacion-from-case-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-sm">➕ Agregar Item</button>
+                </div>
+            </div>
+            <div id="case-facturacion-list" class="space-y-3"></div>
         </div>
-      </div>
+        </div>
     </div>
   </div>
   <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
@@ -729,9 +762,15 @@
           </div>
           <form id="contacto-form" class="space-y-4">
               <input type="hidden" id="contacto-id">
-              <div>
-                  <label class="block text-sm text-gray-300 required-dot">Nombre y Apellido</label>
-                  <input type="text" id="contacto-nombre" placeholder="Nombre completo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <label class="block text-sm text-gray-300 required-dot">Nombre</label>
+                      <input type="text" id="contacto-nombre" placeholder="Nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                  </div>
+                   <div>
+                      <label class="block text-sm text-gray-300 required-dot">Apellido</label>
+                      <input type="text" id="contacto-apellido" placeholder="Apellido" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+                  </div>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -749,9 +788,17 @@
                       <input type="text" id="contacto-dni" placeholder="N° de DNI" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
                   </div>
                   <div>
-                      <label class="block text-sm text-gray-300">Domicilio</label>
-                      <input type="text" id="contacto-domicilio" placeholder="Dirección" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                      <label class="block text-sm text-gray-300">Tipo</label>
+                      <select id="contacto-tipo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+                          <option value="Otro">Otro</option>
+                          <option value="Actor">Actor</option>
+                          <option value="Demandado">Demandado</option>
+                      </select>
                   </div>
+              </div>
+               <div>
+                  <label class="block text-sm text-gray-300">Domicilio</label>
+                  <input type="text" id="contacto-domicilio" placeholder="Dirección" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
               </div>
               <div>
                   <label class="block text-sm text-gray-300">Notas</label>
@@ -852,7 +899,16 @@
       deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // --- CONFIGURACIÓN DE FIREBASE ---
+    
+    import {
+      getDatabase,
+      ref as rtdbRef,
+      onDisconnect,
+      onValue,
+      set as rtdbSet,
+      serverTimestamp as rtdbServerTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+// --- CONFIGURACIÓN DE FIREBASE ---
     const firebaseConfig = {
       apiKey: "AIzaSyBMyDgQDU58NZhC4_4jupw1QoVJpKo6QXo",
       authDomain: "abogapp-c3166.firebaseapp.com",
@@ -868,7 +924,9 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+    
+    const rtdb = getDatabase(app);
+// --- REFERENCIAS A ELEMENTOS DEL DOM ---
     const authView = document.getElementById('auth-view');
     const appView = document.getElementById('app-view');
     const loginForm = document.getElementById('login-form');
@@ -918,7 +976,11 @@
             authView.classList.add('hidden');
             appView.classList.remove('hidden');
             initialize();
-        } else {
+        
+    initPresenceForCurrentUser();
+    if (unsubscribeMembers) { unsubscribeMembers(); }
+    unsubscribeMembers = subscribeTenantMembers();
+} else {
             console.log("User profile not found, logging out.");
             signOut(auth);
         }
@@ -927,6 +989,16 @@
         currentUserId = null;
         currentUserTenantId = null;
         currentUserRole = null;
+        
+        // Limpieza de Listeners
+        if (unsubContactos) unsubContactos();
+        if (unsubCasos) unsubCasos();
+        if (unsubVencimientos) unsubVencimientos();
+        if (unsubFacturacion) unsubFacturacion();
+        if (unsubTareas) unsubTareas();
+        if (unsubscribeMembers) unsubscribeMembers();
+        unsubscribeAllPresence();
+
         authView.classList.remove('hidden');
         appView.classList.add('hidden');
       }
@@ -946,7 +1018,6 @@
           if (invitationSnap.exists()) {
               const invitation = invitationSnap.data();
               tenantId = invitation.tenantId;
-              // Optional: you could check if the email matches invitation.email
           } else {
               showToast('Vínculo de invitación no válido o ya utilizado.', 'error');
               return;
@@ -1282,7 +1353,7 @@
         if (searchQuery) {
             const normalizedQuery = normalizeString(searchQuery.toLowerCase());
             filteredCasos = filteredCasos.filter(c => {
-                const caratula = normalizeString(`${c.actorNombre} vs. ${c.demandadoNombre}`.toLowerCase());
+                const caratula = normalizeString(`${c.actorNombre} ${c.actorApellido} vs. ${c.demandadoNombre} ${c.demandadoApellido}`.toLowerCase());
                 return normalizeString(c.expediente.toLowerCase()).includes(normalizedQuery) ||
                        caratula.includes(normalizedQuery) ||
                        normalizeString(c.estadoProcesal.toLowerCase()).includes(normalizedQuery) ||
@@ -1292,8 +1363,8 @@
         filteredCasos.sort((a, b) => {
             let valA, valB;
             if (sortConfig.key === 'caratula') {
-                valA = `${a.actorNombre} vs. ${a.demandadoNombre}`;
-                valB = `${b.actorNombre} vs. ${b.demandadoNombre}`;
+                valA = `${a.actorNombre} ${a.actorApellido} vs. ${a.demandadoNombre} ${a.demandadoApellido}`;
+                valB = `${b.actorNombre} ${b.actorApellido} vs. ${b.demandadoNombre} ${b.demandadoApellido}`;
             } else {
                  valA = a[sortConfig.key];
                  valB = b[sortConfig.key];
@@ -1316,7 +1387,7 @@
         tr.dataset.id = c.id;
         tr.innerHTML = `
           <td class="px-6 py-4">${c.expediente}</td>
-          <td class="px-6 py-4">${c.actorNombre} vs. ${c.demandadoNombre}</td>
+          <td class="px-6 py-4">${c.actorNombre} ${c.actorApellido} vs. ${c.demandadoNombre} ${c.demandadoApellido}</td>
           <td class="px-6 py-4">${c.estadoProcesal}</td>
           <td class="px-6 py-4">${c.juez}</td>
           <td class="px-6 py-4 text-right">
@@ -1375,7 +1446,7 @@
             tr.dataset.id = v.id;
             tr.innerHTML = `
                 <td class="px-6 py-4">${v.titulo}</td>
-                <td class="px-6 py-4">${casoVinculado ? `${casoVinculado.expediente} (${casoVinculado.actorNombre} vs ${casoVinculado.demandadoNombre})` : "—"}</td>
+                <td class="px-6 py-4">${casoVinculado ? `${casoVinculado.expediente} (${casoVinculado.actorNombre} ${casoVinculado.actorApellido} vs ${casoVinculado.demandadoNombre} ${casoVinculado.demandadoApellido})` : "—"}</td>
                 <td class="px-6 py-4">${v.fecha}</td>
                 <td class="px-6 py-4">${v.recordatorio} días antes</td>
                 <td class="px-6 py-4 text-right">
@@ -1396,6 +1467,7 @@
       document.getElementById('case-id').value = '';
       clearAllErrors(caseForm);
       caseModalTitle.textContent = "Agregar Nuevo Caso";
+      populateContactosEnCasoForm();
       openModal(caseModal);
     });
     xCaseBtn.addEventListener("click", () => closeModal(caseModal));
@@ -1410,7 +1482,9 @@
       
       let hasError = false;
       if (!document.getElementById("case-actorNombre").value.trim()) { showFieldError(document.getElementById("case-actorNombre"), "Ingrese el nombre del actor."); hasError = true; }
+      if (!document.getElementById("case-actorApellido").value.trim()) { showFieldError(document.getElementById("case-actorApellido"), "Ingrese el apellido del actor."); hasError = true; }
       if (!document.getElementById("case-demandadoNombre").value.trim()) { showFieldError(document.getElementById("case-demandadoNombre"), "Ingrese el nombre del demandado."); hasError = true; }
+      if (!document.getElementById("case-demandadoApellido").value.trim()) { showFieldError(document.getElementById("case-demandadoApellido"), "Ingrese el apellido del demandado."); hasError = true; }
       if (!expediente) { showFieldError(expedienteInput, "Ingrese el número de expediente."); hasError = true; }
       if (!document.getElementById("case-tipoProceso").value) { showFieldError(document.getElementById("case-tipoProceso"), "Seleccione un tipo."); hasError = true; }
       if (!document.getElementById("case-estadoProcesal").value) { showFieldError(document.getElementById("case-estadoProcesal"), "Seleccione un estado."); hasError = true; }
@@ -1422,10 +1496,21 @@
       }
       if (hasError) { showToast("Corrija los errores.", "warn"); return; }
       
+      const saveBtn = document.getElementById('save-case-btn');
+      const btnText = saveBtn.querySelector('.btn-text');
+      const loader = saveBtn.querySelector('.loader');
+      btnText.classList.add('hidden');
+      loader.classList.remove('hidden');
+      saveBtn.disabled = true;
+      
       const casoData = {
         expediente: expediente,
         actorNombre: document.getElementById("case-actorNombre").value.trim(),
+        actorApellido: document.getElementById("case-actorApellido").value.trim(),
         demandadoNombre: document.getElementById("case-demandadoNombre").value.trim(),
+        demandadoApellido: document.getElementById("case-demandadoApellido").value.trim(),
+        actorContactoId: document.getElementById("case-actor-contact-id").value || null,
+        demandadoContactoId: document.getElementById("case-demandado-contact-id").value || null,
         tipoProceso: document.getElementById("case-tipoProceso").value,
         estadoProcesal: document.getElementById("case-estadoProcesal").value,
         importeReclamado: parseFloat(document.getElementById("case-importeReclamado").value) || 0,
@@ -1452,12 +1537,18 @@
       } catch (error) {
           console.error("Error saving case: ", error);
           showToast("Error al guardar el caso.", "error");
+      } finally {
+        btnText.classList.remove('hidden');
+        loader.classList.add('hidden');
+        saveBtn.disabled = false;
       }
     });
 
     caseListBody.addEventListener("click", async (e) => {
       const target = e.target;
-      const caseId = target.closest("tr").dataset.id;
+      const caseRow = target.closest("tr");
+      if(!caseRow) return;
+      const caseId = caseRow.dataset.id;
       if(!caseId) return;
       
       const caso = casos.find(c => c.id === caseId);
@@ -1476,7 +1567,9 @@
           document.getElementById('case-id').value = caso.id;
           document.getElementById('case-expediente').value = caso.expediente;
           document.getElementById('case-actorNombre').value = caso.actorNombre;
+          document.getElementById('case-actorApellido').value = caso.actorApellido;
           document.getElementById('case-demandadoNombre').value = caso.demandadoNombre;
+          document.getElementById('case-demandadoApellido').value = caso.demandadoApellido;
           document.getElementById('case-tipoProceso').value = caso.tipoProceso;
           document.getElementById('case-estadoProcesal').value = caso.estadoProcesal;
           document.getElementById('case-importeReclamado').value = caso.importeReclamado;
@@ -1489,15 +1582,56 @@
           document.getElementById('case-resultas2da').value = caso.resultas2da;
           document.getElementById('case-medidasCautelares').value = caso.medidasCautelares;
           
+          populateContactosEnCasoForm(caso.actorContactoId, caso.demandadoContactoId);
+          
           openModal(caseModal);
       } else if (target.classList.contains("delete-case-btn")) {
-          if (confirm('¿Está seguro de que desea eliminar este caso? Se borrarán todos sus movimientos y pruebas.')) {
+          if (confirm('¿Está seguro de que desea eliminar este caso? Se borrarán todos sus movimientos, pruebas y archivos adjuntos de forma permanente.')) {
+              
+              target.textContent = 'Borrando...';
+              target.disabled = true;
+
               try {
-                await deleteDoc(doc(db, `tenants/${currentUserTenantId}/casos`, caseId));
-                showToast('Caso eliminado 🗑️', 'success');
+                  const filePathsToDelete = [];
+                  if (caso.movimientos && caso.movimientos.length > 0) {
+                      caso.movimientos.forEach(mov => {
+                          if (mov.archivos && mov.archivos.length > 0) {
+                              mov.archivos.forEach(file => {
+                                  if (file.path) filePathsToDelete.push(file.path);
+                              });
+                          }
+                      });
+                  }
+                  if (caso.pruebas && caso.pruebas.length > 0) {
+                      caso.pruebas.forEach(p => {
+                          if (p.movimientos && p.movimientos.length > 0) {
+                              p.movimientos.forEach(mov => {
+                                  if (mov.archivos && mov.archivos.length > 0) {
+                                      mov.archivos.forEach(file => {
+                                          if (file.path) filePathsToDelete.push(file.path);
+                                      });
+                                  }
+                              });
+                          }
+                      });
+                  }
+
+                  const deleteFilePromises = filePathsToDelete.map(path => {
+                      const fileRef = ref(storage, path);
+                      return deleteObject(fileRef);
+                  });
+
+                  await Promise.all(deleteFilePromises);
+
+                  await deleteDoc(doc(db, `tenants/${currentUserTenantId}/casos`, caseId));
+                  
+                  showToast('Caso y todos sus archivos eliminados 🗑️', 'success');
+
               } catch (error) {
-                console.error("Error deleting case: ", error);
-                showToast("Error al eliminar el caso.", "error");
+                  console.error("Error deleting case and its files: ", error);
+                  showToast("Error al eliminar el caso. Revisa la consola.", "error");
+                  target.textContent = 'Borrar';
+                  target.disabled = false;
               }
           }
       }
@@ -1633,6 +1767,20 @@
         
         showToast("Movimiento guardado ✅", "success");
         closeModal(movementModal);
+        
+        // <<<--- INICIO DE NUEVA FUNCIÓN: Facturación Post-Movimiento ---
+        if (movementMode !== 'edit') {
+            setTimeout(() => { // Timeout para que la transición del modal no se vea afectada
+                if (confirm('¿Desea agregar un item de facturación relacionado a este movimiento?')) {
+                    openFacturacionModal('create', {
+                        casoId: currentCaseId,
+                        concepto: entry.descripcion // Pre-rellenar el concepto
+                    });
+                }
+            }, 300);
+        }
+        // --- FIN DE NUEVA FUNCIÓN ---
+
 
       } catch (error) {
         console.error("Error saving movement: ", error);
@@ -1755,8 +1903,11 @@
             // Eliminar archivos de Storage
             if (movementToDelete.archivos && movementToDelete.archivos.length > 0) {
                 const deletePromises = movementToDelete.archivos.map(file => {
-                    const fileRef = ref(storage, file.path);
-                    return deleteObject(fileRef);
+                    if (file.path) {
+                        const fileRef = ref(storage, file.path);
+                        return deleteObject(fileRef);
+                    }
+                    return Promise.resolve();
                 });
                 await Promise.all(deletePromises);
             }
@@ -1872,6 +2023,7 @@
                 ...pruebaData,
                 movimientos: []
             };
+            if(!caso.pruebas) caso.pruebas = [];
             caso.pruebas.push(newPrueba);
         }
         
@@ -1933,7 +2085,7 @@
         casos.forEach(c => {
             const option = document.createElement('option');
             option.value = c.id;
-            option.textContent = `${c.expediente} (${c.actorNombre} vs ${c.demandadoNombre})`;
+            option.textContent = `${c.expediente} (${c.actorNombre} ${c.actorApellido} vs ${c.demandadoNombre} ${c.demandadoApellido})`;
             if (selectedId && c.id === selectedId) {
                 option.selected = true;
             }
@@ -1989,7 +2141,9 @@
 
     vencimientoListBody.addEventListener('click', async (e) => {
         const target = e.target;
-        const id = target.closest('tr').dataset.id;
+        const row = target.closest('tr');
+        if (!row) return;
+        const id = row.dataset.id;
         if(!id) return;
 
         if (target.classList.contains('edit-vencimiento-btn')) {
@@ -2022,7 +2176,7 @@
     });
 
     // ---------- LÓGICA DE FACTURACIÓN ----------
-    const formatCurrency = (amount) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+    const formatCurrency = (amount) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount || 0);
 
     function renderFacturacion() {
         facturacionListBody.innerHTML = '';
@@ -2148,7 +2302,9 @@
 
     facturacionListBody.addEventListener('click', async e => {
         const target = e.target;
-        const id = target.closest('tr').dataset.id;
+        const row = target.closest('tr');
+        if (!row) return;
+        const id = row.dataset.id;
         if (!id) return;
         const item = facturacion.find(f => f.id === id);
         if (!item) return;
@@ -2182,7 +2338,7 @@
         const htmlContent = `
             <h1>Informe de Gastos y Honorarios</h1>
             <p><strong>Expediente:</strong> ${caso.expediente}</p>
-            <p><strong>Carátula:</strong> ${caso.actorNombre} vs. ${caso.demandadoNombre}</p>
+            <p><strong>Carátula:</strong> ${caso.actorNombre} ${caso.actorApellido} vs. ${caso.demandadoNombre} ${caso.demandadoApellido}</p>
             <hr>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead><tr><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Fecha</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Concepto</th><th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Monto</th></tr></thead>
@@ -2212,10 +2368,10 @@
             tr.className = "border-b border-gray-700 hover-row";
             tr.dataset.id = c.id;
             tr.innerHTML = `
-                <td class="px-6 py-4">${c.nombre}</td>
+                <td class="px-6 py-4">${c.nombre} ${c.apellido}</td>
                 <td class="px-6 py-4">${c.telefono || '—'}</td>
                 <td class="px-6 py-4">${c.email || '—'}</td>
-                <td class="px-6 py-4">${c.dni || '—'}</td>
+                <td class="px-6 py-4">${c.tipo || '—'}</td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex justify-end items-center space-x-2">
                         <button class="edit-contacto-btn bg-gray-600 hover:bg-gray-500 text-white text-xs px-2.5 py-1 rounded-md">Editar</button>
@@ -2243,18 +2399,22 @@
         e.preventDefault();
         clearAllErrors(contactoForm);
         const nombreInput = document.getElementById('contacto-nombre');
-        if (!nombreInput.value.trim()) {
-            showFieldError(nombreInput, 'El nombre es obligatorio.');
+        const apellidoInput = document.getElementById('contacto-apellido');
+        if (!nombreInput.value.trim() || !apellidoInput.value.trim()) {
+            showFieldError(nombreInput, 'Nombre y Apellido son obligatorios.');
+            showFieldError(apellidoInput, 'Nombre y Apellido son obligatorios.');
             return;
         }
 
         const id = document.getElementById('contacto-id').value;
         const contactoData = {
             nombre: nombreInput.value.trim(),
+            apellido: apellidoInput.value.trim(),
             telefono: document.getElementById('contacto-telefono').value.trim(),
             email: document.getElementById('contacto-email').value.trim(),
             dni: document.getElementById('contacto-dni').value.trim(),
             domicilio: document.getElementById('contacto-domicilio').value.trim(),
+            tipo: document.getElementById('contacto-tipo').value,
             notas: document.getElementById('contacto-notas').value.trim(),
         };
 
@@ -2275,7 +2435,9 @@
 
     contactoListBody.addEventListener('click', async e => {
         const target = e.target;
-        const id = target.closest('tr').dataset.id;
+        const row = target.closest('tr');
+        if (!row) return;
+        const id = row.dataset.id;
         if (!id) return;
         const contacto = contactos.find(c => c.id === id);
         if (!contacto) return;
@@ -2287,14 +2449,16 @@
             contactoModalTitle.textContent = 'Editar Contacto';
             document.getElementById('contacto-id').value = contacto.id;
             document.getElementById('contacto-nombre').value = contacto.nombre;
+            document.getElementById('contacto-apellido').value = contacto.apellido;
             document.getElementById('contacto-telefono').value = contacto.telefono;
             document.getElementById('contacto-email').value = contacto.email;
             document.getElementById('contacto-dni').value = contacto.dni;
             document.getElementById('contacto-domicilio').value = contacto.domicilio;
+            document.getElementById('contacto-tipo').value = contacto.tipo;
             document.getElementById('contacto-notas').value = contacto.notas;
             openModal(contactoModal);
         } else if (target.classList.contains('delete-contacto-btn')) {
-            if (confirm('¿Eliminar este contacto? No se podrá vincular a nuevos casos.')) {
+            if (confirm('¿Eliminar este contacto?')) {
                 try {
                     await deleteDoc(doc(db, `tenants/${currentUserTenantId}/contactos`, id));
                     showToast('Contacto eliminado 🗑️');
@@ -2305,6 +2469,57 @@
             }
         }
     });
+    
+    // ---------- LÓGICA DE VINCULACIÓN DE CONTACTOS A CASOS ----------
+    function populateContactosEnCasoForm(selectedActorId = null, selectedDemandadoId = null) {
+        const actorSelect = document.getElementById('case-actor-contact-id');
+        const demandadoSelect = document.getElementById('case-demandado-contact-id');
+        
+        actorSelect.innerHTML = '<option value="">Seleccionar de la agenda...</option>';
+        demandadoSelect.innerHTML = '<option value="">Seleccionar de la agenda...</option>';
+
+        contactos.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = `${c.nombre} ${c.apellido} (${c.dni || 'Sin DNI'})`;
+            
+            // Añadir al selector correspondiente según el tipo
+            if (c.tipo === 'Actor') {
+                actorSelect.appendChild(option.cloneNode(true));
+            } else if (c.tipo === 'Demandado') {
+                demandadoSelect.appendChild(option.cloneNode(true));
+            }
+            // Añadir a ambos si es 'Otro'
+            else {
+                 actorSelect.appendChild(option.cloneNode(true));
+                 demandadoSelect.appendChild(option.cloneNode(true));
+            }
+        });
+        
+        if (selectedActorId) actorSelect.value = selectedActorId;
+        if (selectedDemandadoId) demandadoSelect.value = selectedDemandadoId;
+    }
+
+    document.getElementById('case-actor-contact-id').addEventListener('change', (e) => {
+        const contactoId = e.target.value;
+        if (!contactoId) return;
+        const contacto = contactos.find(c => c.id === contactoId);
+        if (contacto) {
+            document.getElementById('case-actorNombre').value = contacto.nombre;
+            document.getElementById('case-actorApellido').value = contacto.apellido;
+        }
+    });
+    
+    document.getElementById('case-demandado-contact-id').addEventListener('change', (e) => {
+        const contactoId = e.target.value;
+        if (!contactoId) return;
+        const contacto = contactos.find(c => c.id === contactoId);
+        if (contacto) {
+            document.getElementById('case-demandadoNombre').value = contacto.nombre;
+            document.getElementById('case-demandadoApellido').value = contacto.apellido;
+        }
+    });
+
 
     // ---------- LÓGICA DE TAREAS ----------
     function renderTareas() {
@@ -2380,7 +2595,9 @@
 
     tareaListBody.addEventListener('click', async e => {
         const target = e.target;
-        const id = target.closest('tr').dataset.id;
+        const row = target.closest('tr');
+        if (!row) return;
+        const id = row.dataset.id;
         if (!id) return;
         const tarea = tareas.find(t => t.id === id);
         if (!tarea) return;
@@ -2506,11 +2723,7 @@
             const qInvite = query(invitationsRef, where("email", "==", emailToInvite), where("tenantId", "==", currentUserTenantId));
             const inviteSnapshot = await getDocs(qInvite);
             if (!inviteSnapshot.empty) {
-                const existingInviteId = inviteSnapshot.docs[0].id;
-                const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${existingInviteId}`;
-                inviteLinkInput.value = inviteLink;
-                openModal(inviteLinkModal);
-                showToast('Ya existe una invitación para este correo.', 'warn');
+                showToast('Ya se ha generado un vínculo para este correo.', 'warn');
                 return;
             }
             
@@ -2795,8 +3008,8 @@
         detailsContent.innerHTML = `
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
             <div><strong>Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
-            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre}</div></div>
-            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre}</div></div>
+            <div><strong>Actor:</strong><div class="mt-1">${caso.actorNombre} ${caso.actorApellido}</div></div>
+            <div><strong>Demandado:</strong><div class="mt-1">${caso.demandadoNombre} ${caso.demandadoApellido}</div></div>
             <div><strong>Tipo de Proceso:</strong><div class="mt-1">${caso.tipoProceso}</div></div>
             <div><strong>Estado Procesal:</strong><div class="mt-1">${caso.estadoProcesal}</div></div>
             <div><strong>Juez:</strong><div class="mt-1">${caso.juez}</div></div>
@@ -2880,6 +3093,132 @@
         renderProfile();
     }
 
-  </script>
+  
+    // ======= PRESENCIA EN TIEMPO REAL (RTDB) =======
+    let tenantMembers = [];
+    const presenceMap = new Map();
+    const presenceUnsubs = new Map();
+    let unsubscribeMembers = null;
+
+    function formatLastSeen(ms) {
+      if (!ms) return '—';
+      const diff = Date.now() - ms;
+      const sec = Math.floor(diff / 1000);
+      if (sec < 60) return 'hace unos segundos';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `hace ${min} min`;
+      const hrs = Math.floor(min / 60);
+      if (hrs < 24) return `hace ${hrs} h`;
+      const days = Math.floor(hrs / 24);
+      if (days === 1) return 'ayer';
+      return `hace ${days} días`;
+    }
+
+    function initPresenceForCurrentUser() {
+      if (!currentUserId) return;
+      const statusRef = rtdbRef(rtdb, `status/${currentUserId}`);
+      const offline = { state: 'offline', last_changed: rtdbServerTimestamp() };
+      const online  = { state: 'online',  last_changed: rtdbServerTimestamp() };
+      onDisconnect(statusRef).set(offline).catch(() => {});
+      rtdbSet(statusRef, online);
+    }
+
+    function subscribePresenceFor(uid) {
+      if (presenceUnsubs.has(uid)) return;
+      const ref = rtdbRef(rtdb, `status/${uid}`);
+      const off = onValue(ref, (snap) => {
+        const v = snap.val();
+        presenceMap.set(uid, v || null);
+        renderPresenceUI();
+      });
+      presenceUnsubs.set(uid, off);
+    }
+
+    function unsubscribeAllPresence() {
+      presenceUnsubs.forEach(off => off());
+      presenceUnsubs.clear();
+    }
+
+    function subscribeTenantMembers() {
+      if (!currentUserTenantId) return;
+      const qMembers = query(collection(db, "users"), where("tenantId", "==", currentUserTenantId));
+      return onSnapshot(qMembers, (snap) => {
+        tenantMembers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const currentIds = new Set(tenantMembers.map(m => m.id));
+        presenceUnsubs.forEach((off, uid) => {
+          if (!currentIds.has(uid)) {
+            off();
+            presenceUnsubs.delete(uid);
+            presenceMap.delete(uid);
+          }
+        });
+        tenantMembers.forEach(m => subscribePresenceFor(m.id));
+        renderPresenceUI();
+      });
+    }
+
+    function renderPresenceUI() {
+      const dash = document.getElementById('dashboard-presence');
+      if (dash) {
+        const members = tenantMembers
+          .map(m => {
+            const pres = presenceMap.get(m.id);
+            const isOnline = pres && pres.state === 'online';
+            const lastMs = pres && typeof pres.last_changed === 'number' ? pres.last_changed : null;
+            return { m, isOnline, lastMs };
+          })
+          .sort((a, b) => Number(b.isOnline) - Number(a.isOnline) || (b.lastMs || 0) - (a.lastMs || 0));
+
+        if (members.length > 1) { // Solo mostrar si hay más de 1 miembro
+          dash.innerHTML = members.map(({ m, isOnline, lastMs }) => `
+            <div class="flex items-center justify-between py-1">
+              <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}"></span>
+                <span>${(m.nombre || '')} ${(m.apellido || '')} <span class="text-gray-500 text-sm">(${m.email || ''})</span></span>
+              </div>
+              <span class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-400'}">${isOnline ? 'En línea' : `Últ. vez: ${formatLastSeen(lastMs)}`}</span>
+            </div>
+          `).join('');
+        } else {
+          dash.innerHTML = '<p class="text-gray-400 text-sm">Invita a colegas desde tu perfil para ver su estado aquí.</p>';
+        }
+      }
+
+      const ul = document.getElementById('members-list');
+      if (ul) {
+        ul.innerHTML = tenantMembers.map(m => {
+          const pres = presenceMap.get(m.id);
+          const isOnline = pres && pres.state === 'online';
+          const lastMs = pres && typeof pres.last_changed === 'number' ? pres.last_changed : null;
+          return `
+            <li class="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2">
+              <div class="flex items-center gap-3">
+                <span class="inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}"></span>
+                <div>
+                  <div class="text-white text-sm font-medium">${(m.nombre || '')} ${(m.apellido || '')}</div>
+                  <div class="text-gray-400 text-xs">${m.email || ''} · ${m.role || ''}</div>
+                </div>
+              </div>
+              <div class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-300'}">
+                ${isOnline ? 'En línea' : `Últ. vez: ${formatLastSeen(lastMs)}`}
+              </div>
+            </li>
+          `;
+        }).join('');
+      }
+
+      const me = presenceMap.get(currentUserId);
+      const lastSeenEl = document.getElementById('profile-last-seen');
+      if (lastSeenEl) {
+        if (me && me.state === 'online') {
+          lastSeenEl.textContent = 'Conectado ahora';
+        } else {
+          const ms = me && typeof me.last_changed === 'number' ? me.last_changed : null;
+          lastSeenEl.textContent = ms ? formatLastSeen(ms) : '—';
+        }
+      }
+    }
+
+</script>
 </body>
 </html>
