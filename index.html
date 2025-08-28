@@ -3114,6 +3114,18 @@
       return `hace ${days} días`;
     }
 
+    function formatAbsoluteDateTime(ms) {
+      if (!ms) return 'Sin datos';
+      const date = new Date(ms);
+      const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
+      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      
+      const dateString = date.toLocaleDateString('es-AR', dateOptions);
+      const timeString = date.toLocaleTimeString('es-AR', timeOptions);
+      
+      return `${dateString} ${timeString} hs`;
+    }
+
     function initPresenceForCurrentUser() {
       if (!currentUserId) return;
       const statusRef = rtdbRef(rtdb, `status/${currentUserId}`);
@@ -3157,7 +3169,7 @@
       });
     }
 
-    function renderPresenceUI() {
+function renderPresenceUI() {
       const dash = document.getElementById('dashboard-presence');
       if (dash) {
         const members = tenantMembers
@@ -3169,14 +3181,18 @@
           })
           .sort((a, b) => Number(b.isOnline) - Number(a.isOnline) || (b.lastMs || 0) - (a.lastMs || 0));
 
-        if (members.length > 1) { // Solo mostrar si hay más de 1 miembro
+        if (members.length > 1) { 
           dash.innerHTML = members.map(({ m, isOnline, lastMs }) => `
             <div class="flex items-center justify-between py-1">
               <div class="flex items-center gap-2">
                 <span class="inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}"></span>
                 <span>${(m.nombre || '')} ${(m.apellido || '')} <span class="text-gray-500 text-sm">(${m.email || ''})</span></span>
               </div>
-              <span class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-400'}">${isOnline ? 'En línea' : `Últ. vez: ${formatLastSeen(lastMs)}`}</span>
+              
+              <span class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-400'}" title="${isOnline ? 'Conectado ahora' : formatAbsoluteDateTime(lastMs)}">
+                ${isOnline ? 'En línea' : `Últ. vez: ${formatLastSeen(lastMs)}`}
+              </span>
+
             </div>
           `).join('');
         } else {
@@ -3199,9 +3215,11 @@
                   <div class="text-gray-400 text-xs">${m.email || ''} · ${m.role || ''}</div>
                 </div>
               </div>
-              <div class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-300'}">
+
+              <div class="text-xs ${isOnline ? 'text-green-400' : 'text-gray-300'}" title="${isOnline ? 'Conectado ahora' : formatAbsoluteDateTime(lastMs)}">
                 ${isOnline ? 'En línea' : `Últ. vez: ${formatLastSeen(lastMs)}`}
               </div>
+
             </li>
           `;
         }).join('');
@@ -3212,9 +3230,12 @@
       if (lastSeenEl) {
         if (me && me.state === 'online') {
           lastSeenEl.textContent = 'Conectado ahora';
+          lastSeenEl.title = 'Estás conectado en este momento';
         } else {
           const ms = me && typeof me.last_changed === 'number' ? me.last_changed : null;
           lastSeenEl.textContent = ms ? formatLastSeen(ms) : '—';
+          // CAMBIO AQUÍ: Se añadió el 'title' para tu propio perfil también
+          lastSeenEl.title = ms ? `Última conexión: ${formatAbsoluteDateTime(ms)}` : 'Sin datos de conexión';
         }
       }
     }
