@@ -2487,7 +2487,7 @@
             }
             
             // Create the email document for the extension to process
-            const mailRef = collection(db, `tenants/${currentUserTenantId}/mail`);
+            const mailRef = collection(db, "mail");
             await addDoc(mailRef, {
                 to: [emailToInvite],
                 message: {
