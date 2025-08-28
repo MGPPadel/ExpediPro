@@ -2506,7 +2506,11 @@
             const qInvite = query(invitationsRef, where("email", "==", emailToInvite), where("tenantId", "==", currentUserTenantId));
             const inviteSnapshot = await getDocs(qInvite);
             if (!inviteSnapshot.empty) {
-                showToast('Ya se ha generado un vínculo para este correo.', 'warn');
+                const existingInviteId = inviteSnapshot.docs[0].id;
+                const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${existingInviteId}`;
+                inviteLinkInput.value = inviteLink;
+                openModal(inviteLinkModal);
+                showToast('Ya existe una invitación para este correo.', 'warn');
                 return;
             }
             
