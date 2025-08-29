@@ -910,14 +910,15 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // --- CONFIGURACIÓN DE FIREBASE ---
     const firebaseConfig = {
-      apiKey: "AIzaSyBMyDgQDU58NZhC4_4jupw1QoVJpKo6QXo",
-      authDomain: "abogapp-c3166.firebaseapp.com",
-      projectId: "abogapp-c3166",
-      storageBucket: "abogapp-c3166.appspot.com",
-      messagingSenderId: "138541502606",
-      appId: "1:138541502606:web:ec236d8e1a47031bd439df",
-      measurementId: "G-K2JH9J257J"
-    };
+  apiKey: "AIzaSyD81ZRZFe0JcYfv9Qe5pBK082Voluo3lRI",
+  authDomain: "abogapp-c3166.firebaseapp.com",
+  databaseURL: "https://abogapp-c3166-default-rtdb.firebaseio.com",
+  projectId: "abogapp-c3166",
+  storageBucket: "abogapp-c3166.firebasestorage.app",
+  messagingSenderId: "138541502606",
+  appId: "1:138541502606:web:ec236d8e1a47031bd439df",
+  measurementId: "G-K2JH9J257J"
+};
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -3243,3 +3244,4 @@ function renderPresenceUI() {
 </script>
 </body>
 </html>
+
