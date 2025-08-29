@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AbogApp - Gestión de Casos Jurídicos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #111827; }
+    .modal-content { max-height: 85vh; overflow-y: auto; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #16a34a; color: white; padding: 12px 20px; border-radius: 8px; opacity: 0; transition: opacity 0.3s ease; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body class="text-gray-200">
+
+  <div class="container mx-auto p-4 md:p-8">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-white">Gestión de Casos Jurídicos</h1>
+      <button id="addCaseBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Agregar Caso</button>
+    </header>
+
+    <main class="bg-gray-800 rounded-lg shadow overflow-hidden">
+      <table class="w-full text-sm text-left text-gray-400">
+        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+          <tr>
+            <th class="px-6 py-3">N° Expediente</th>
+            <th class="px-6 py-3">Carátula</th>
+            <th class="px-6 py-3">Fuero</th>
+            <th class="px-6 py-3">Juzgado</th>
+            <th class="px-6 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="case-list-body"></tbody>
+      </table>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Caso creado con éxito ✅</div>
+
+  <!-- Modal: Nuevo Caso -->
+  <div id="case-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6">
+      <div class="flex justify-between items-start mb-2">
+        <h2 class="text-xl font-bold text-white">Agregar Nuevo Caso</h2>
+        <button id="x-case-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <form id="case-form" class="space-y-4">
+        <input type="text" id="case-actor" placeholder="Actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <input type="text" id="case-demandado" placeholder="Demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <input type="text" id="case-expediente" placeholder="N° Expediente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <input type="text" id="case-objeto" placeholder="Objeto del juicio" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        <select id="case-fuero" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+          <option value="" disabled selected>Seleccionar fuero</option>
+          <option value="Laboral">Laboral</option>
+          <option value="Civil">Civil</option>
+          <option value="Familia">Familia</option>
+          <option value="Penal">Penal</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <input type="text" id="case-fuero-otro" placeholder="Si es otro, especifique" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 hidden">
+        <input type="text" id="case-juzgado" placeholder="Juzgado donde está radicado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <input type="text" id="case-provincia" placeholder="Provincia / Ciudad" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        <input type="text" id="case-abogado" placeholder="Abogado de la otra parte" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        <input type="text" id="case-telefono" placeholder="Teléfono del abogado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        <div class="flex justify-end space-x-4 pt-2">
+          <button type="button" id="cancel-case-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detalles del Caso -->
+  <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl modal-content">
+      <div class="p-8">
+        <div class="flex justify-between items-start">
+          <h2 class="text-2xl font-bold text-white mb-6">Detalles del Expediente</h2>
+          <button id="close-details-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+        </div>
+        <div id="details-content" class="space-y-2 text-gray-300"></div>
+
+        <div class="mt-8 pt-6 border-t border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Movimientos del Expediente</h3>
+            <button id="add-movement-btn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+              ➕ Agregar Movimiento
+            </button>
+          </div>
+          <ul id="movement-list" class="space-y-4"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar/Editar Movimiento -->
+  <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6">
+      <div class="flex justify-between items-start mb-2">
+        <h2 class="text-xl font-bold text-white" id="movement-modal-title">Agregar Movimiento</h2>
+        <button id="x-movement-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <form id="movement-form" class="space-y-4">
+        <input type="date" id="mov-fecha" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <select id="mov-tipo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+          <option value="" disabled selected>Seleccionar tipo</option>
+          <option value="escrito">✍️ Escrito</option>
+          <option value="decreto">📜 Decreto</option>
+          <option value="sentencia">⚖️ Sentencia</option>
+          <option value="otro">Otro</option>
+        </select>
+        <input type="text" id="mov-descripcion" placeholder="Descripción corta" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        <textarea id="mov-detalle" rows="3" placeholder="Detalle o texto completo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"></textarea>
+        <input type="file" id="mov-archivo" accept="application/pdf" class="w-full text-gray-300">
+        <div class="flex justify-end space-x-4 pt-2">
+          <button type="button" id="cancel-movement-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle de un movimiento -->
+  <div id="movement-detail-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-xl modal-content p-6">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="text-xl font-bold text-white">Detalle del Movimiento</h2>
+        <button id="close-movement-detail-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <div id="movement-detail-content" class="space-y-4 text-gray-300"></div>
+      <div class="flex justify-end space-x-4 mt-4">
+        <button id="edit-movement-btn" type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg">Editar</button>
+        <button id="delete-movement-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos iniciales de ejemplo
+    let casos = [
+      {id: 1, expediente: "123/25", actor: "Pérez", demandado: "García", objeto: "Cobro de pesos", fuero: "Civil", juzgado: "Juzgado 2", provincia: "CABA", abogado: "Dr. López", telefono: "123456789"},
+      {id: 2, expediente: "456/25", actor: "López", demandado: "Martínez", objeto: "Despido", fuero: "Laboral", juzgado: "Juzgado 5", provincia: "Bs As", abogado: "Dr. Pérez", telefono: "987654321"}
+    ];
+    let movimientos = { 1: [], 2: [] };
+
+    // Referencias
+    const caseListBody = document.getElementById("case-list-body");
+    const addCaseBtn = document.getElementById("addCaseBtn");
+    const caseModal = document.getElementById("case-modal");
+    const xCaseBtn = document.getElementById("x-case-btn");
+    const cancelCaseBtn = document.getElementById("cancel-case-btn");
+    const caseForm = document.getElementById("case-form");
+    const toast = document.getElementById("toast");
+
+    const detailsModal = document.getElementById("details-modal");
+    const closeDetailsBtn = document.getElementById("close-details-btn");
+    const detailsContent = document.getElementById("details-content");
+    const addMovementBtn = document.getElementById("add-movement-btn");
+    const movementList = document.getElementById("movement-list");
+
+    const movementModal = document.getElementById("movement-modal");
+    const xMovementBtn = document.getElementById("x-movement-btn");
+    const cancelMovementBtn = document.getElementById("cancel-movement-btn");
+    const movementForm = document.getElementById("movement-form");
+    const movementModalTitle = document.getElementById("movement-modal-title");
+
+    const movementDetailModal = document.getElementById("movement-detail-modal");
+    const closeMovementDetailBtn = document.getElementById("close-movement-detail-btn");
+    const movementDetailContent = document.getElementById("movement-detail-content");
+    const editMovementBtn = document.getElementById("edit-movement-btn");
+    const deleteMovementBtn = document.getElementById("delete-movement-btn");
+
+    let currentCaseId = null;
+    let currentMovementIndex = null; // índice del movimiento seleccionado (para ver/editar/eliminar)
+    let movementMode = "create"; // "create" | "edit"
+
+    // ---------------- Render ----------------
+    function renderCases() {
+      caseListBody.innerHTML = "";
+      casos.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-gray-700 hover:bg-gray-800/50";
+        tr.dataset.id = c.id;
+        tr.innerHTML = `
+          <td class="px-6 py-4">${c.expediente}</td>
+          <td class="px-6 py-4">${c.actor} vs. ${c.demandado}</td>
+          <td class="px-6 py-4">${c.fuero}</td>
+          <td class="px-6 py-4">${c.juzgado}</td>
+          <td class="px-6 py-4 text-right">
+            <button class="view-btn bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">Ver</button>
+          </td>
+        `;
+        caseListBody.appendChild(tr);
+      });
+    }
+
+    function renderMovements(caseId) {
+      const lista = movimientos[caseId] || [];
+      movementList.innerHTML = "";
+      if (lista.length === 0) {
+        movementList.innerHTML = "<p class='text-gray-400'>Sin movimientos registrados.</p>";
+        return;
+      }
+      lista.forEach((m, index) => {
+        const li = document.createElement("li");
+        li.className = "bg-gray-700 p-4 rounded-lg shadow cursor-pointer";
+        li.dataset.index = index;
+        li.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-white">${m.fecha}</span>
+            <span class="px-2 py-1 text-xs rounded ${m.tipo === "sentencia" ? "bg-red-600" : m.tipo === "decreto" ? "bg-blue-600" : "bg-green-600"}">
+              ${m.tipo}
+            </span>
+          </div>
+          <p class="text-gray-300">${m.descripcion}</p>
+        `;
+        movementList.appendChild(li);
+      });
+    }
+
+    function showToast(msg = "Acción realizada con éxito ✅") {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    // ---------------- Util ----------------
+    function closeModal(el) { el.classList.add("hidden"); }
+    function openModal(el) { el.classList.remove("hidden"); }
+
+    // ---------------- Listeners: Casos ----------------
+    addCaseBtn.addEventListener("click", () => {
+      caseForm.reset();
+      document.getElementById("case-fuero-otro").classList.add("hidden");
+      openModal(caseModal);
+    });
+    xCaseBtn.addEventListener("click", () => closeModal(caseModal));
+    cancelCaseBtn.addEventListener("click", () => closeModal(caseModal));
+
+    document.getElementById("case-fuero").addEventListener("change", (e) => {
+      const other = document.getElementById("case-fuero-otro");
+      if (e.target.value === "Otro") other.classList.remove("hidden"); else other.classList.add("hidden");
+    });
+
+    caseForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const actor = document.getElementById("case-actor").value.trim();
+      const demandado = document.getElementById("case-demandado").value.trim();
+      const expediente = document.getElementById("case-expediente").value.trim();
+      const objeto = document.getElementById("case-objeto").value.trim();
+      const fueroSel = document.getElementById("case-fuero").value;
+      const fueroOtro = document.getElementById("case-fuero-otro").value.trim();
+      const juzgado = document.getElementById("case-juzgado").value.trim();
+      const provincia = document.getElementById("case-provincia").value.trim();
+      const abogado = document.getElementById("case-abogado").value.trim();
+      const telefono = document.getElementById("case-telefono").value.trim();
+
+      const fuero = fueroSel === "Otro" && fueroOtro ? fueroOtro : fueroSel || "—";
+
+      const newId = casos.length ? Math.max(...casos.map(c => c.id)) + 1 : 1;
+      const nuevoCaso = { id: newId, expediente, actor, demandado, objeto, fuero, juzgado, provincia, abogado, telefono };
+      casos.push(nuevoCaso);
+      movimientos[newId] = [];
+
+      renderCases();
+      closeModal(caseModal);
+      showToast("Caso creado con éxito ✅");
+    });
+
+    // Abrir detalles de un caso
+    caseListBody.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("view-btn")) return;
+      const id = Number(e.target.closest("tr").dataset.id);
+      const caso = casos.find(c => c.id === id);
+      if (!caso) return;
+      currentCaseId = id;
+
+      detailsContent.innerHTML = `
+        <p><strong>Actor:</strong> ${caso.actor}</p>
+        <p><strong>Demandado:</strong> ${caso.demandado}</p>
+        <p><strong>N° Expediente:</strong> ${caso.expediente}</p>
+        <p><strong>Objeto del juicio:</strong> ${caso.objeto || "—"}</p>
+        <p><strong>Fuero:</strong> ${caso.fuero}</p>
+        <p><strong>Juzgado:</strong> ${caso.juzgado}</p>
+        <p><strong>Provincia/Ciudad:</strong> ${caso.provincia || "—"}</p>
+        <p><strong>Abogado de la otra parte:</strong> ${caso.abogado || "—"}</p>
+        <p><strong>Teléfono del abogado:</strong> ${caso.telefono || "—"}</p>
+      `;
+      renderMovements(currentCaseId);
+      openModal(detailsModal);
+    });
+
+    closeDetailsBtn.addEventListener("click", () => closeModal(detailsModal));
+
+    // ---------------- Listeners: Movimientos ----------------
+    addMovementBtn.addEventListener("click", () => {
+      if (!currentCaseId) return;
+      movementMode = "create";
+      movementForm.reset();
+      movementModalTitle.textContent = "Agregar Movimiento";
+      openModal(movementModal);
+    });
+    xMovementBtn.addEventListener("click", () => closeModal(movementModal));
+    cancelMovementBtn.addEventListener("click", () => closeModal(movementModal));
+
+    // Guardar movimiento (crear o editar)
+    movementForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!currentCaseId) return;
+
+      const fecha = document.getElementById("mov-fecha").value;
+      const tipo = document.getElementById("mov-tipo").value;
+      const descripcion = document.getElementById("mov-descripcion").value.trim();
+      const detalle = document.getElementById("mov-detalle").value.trim();
+      const archivoInput = document.getElementById("mov-archivo");
+      let archivoNombre = "";
+      let archivoURL = "";
+
+      if (archivoInput.files && archivoInput.files[0]) {
+        archivoNombre = archivoInput.files[0].name;
+        try {
+          archivoURL = URL.createObjectURL(archivoInput.files[0]);
+        } catch (e) {
+          archivoURL = "";
+        }
+      }
+
+      const entry = { fecha, tipo, descripcion, detalle, archivoNombre, archivoURL };
+
+      if (movementMode === "edit" && currentMovementIndex !== null) {
+        movimientos[currentCaseId][currentMovementIndex] = entry;
+        showToast("Movimiento actualizado ✅");
+      } else {
+        movimientos[currentCaseId].push(entry);
+        showToast("Movimiento agregado ✅");
+      }
+
+      renderMovements(currentCaseId);
+      closeModal(movementModal);
+    });
+
+    // Click en lista de movimientos -> ver detalle
+    movementList.addEventListener("click", (e) => {
+      const li = e.target.closest("li");
+      if (!li) return;
+      currentMovementIndex = Number(li.dataset.index);
+      const mov = (movimientos[currentCaseId] || [])[currentMovementIndex];
+      if (!mov) return;
+
+      let fileBlock = "";
+      if (mov.archivoNombre) {
+        if (mov.archivoURL) {
+          fileBlock = `<p><strong>Archivo:</strong> <a href="${mov.archivoURL}" target="_blank" class="text-blue-400 underline">${mov.archivoNombre}</a></p>`;
+        } else {
+          fileBlock = `<p><strong>Archivo:</strong> ${mov.archivoNombre}</p>`;
+        }
+      }
+
+      movementDetailContent.innerHTML = `
+        <p><strong>Fecha:</strong> ${mov.fecha}</p>
+        <p><strong>Tipo:</strong> ${mov.tipo}</p>
+        <p><strong>Descripción:</strong> ${mov.descripcion}</p>
+        <div>
+          <p class="mb-1"><strong>Detalle:</strong></p>
+          <div class="whitespace-pre-wrap bg-gray-700 p-3 rounded">${mov.detalle || "—"}</div>
+        </div>
+        ${fileBlock}
+      `;
+      openModal(movementDetailModal);
+    });
+
+    closeMovementDetailBtn.addEventListener("click", () => closeModal(movementDetailModal));
+
+    // Editar movimiento
+    editMovementBtn.addEventListener("click", () => {
+      const mov = (movimientos[currentCaseId] || [])[currentMovementIndex];
+      if (!mov) return;
+      document.getElementById("mov-fecha").value = mov.fecha || "";
+      document.getElementById("mov-tipo").value = mov.tipo || "";
+      document.getElementById("mov-descripcion").value = mov.descripcion || "";
+      document.getElementById("mov-detalle").value = mov.detalle || "";
+      document.getElementById("mov-archivo").value = ""; // no se puede pre-cargar por seguridad
+
+      movementMode = "edit";
+      movementModalTitle.textContent = "Editar Movimiento";
+      closeModal(movementDetailModal);
+      openModal(movementModal);
+    });
+
+    // Eliminar movimiento
+    deleteMovementBtn.addEventListener("click", () => {
+      if (currentMovementIndex === null) return;
+      const ok = confirm("¿Eliminar este movimiento? Esta acción no se puede deshacer.");
+      if (!ok) return;
+      movimientos[currentCaseId].splice(currentMovementIndex, 1);
+      currentMovementIndex = null;
+      renderMovements(currentCaseId);
+      closeModal(movementDetailModal);
+      showToast("Movimiento eliminado 🗑️");
+    });
+
+    // Cerrar modales con ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        [caseModal, detailsModal, movementModal, movementDetailModal].forEach(m => m.classList.add("hidden"));
+      }
+    });
+
+    // Inicializar
+    renderCases();
+  </script>
+</body>
+</html>

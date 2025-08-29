@@ -1,0 +1,34 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  # Se ejecuta cada vez que haces un 'push' a la rama principal
+  push:
+    branches:
+      - main # IMPORTANTE: Cambia 'main' por 'master' si tu rama principal se llama así.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Descarga el código de tu repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Reemplaza cada marcador de posición con el secreto correspondiente
+      - name: Replace Firebase config secrets
+        run: |
+          sed -i "s|\${{ secrets.FIREBASE_API_KEY }}|${{ secrets.FIREBASE_API_KEY }}|g" tu-archivo.html
+          sed -i "s|\${{ secrets.FIREBASE_AUTH_DOMAIN }}|${{ secrets.FIREBASE_AUTH_DOMAIN }}|g" tu-archivo.html
+          sed -i "s|\${{ secrets.FIREBASE_PROJECT_ID }}|${{ secrets.FIREBASE_PROJECT_ID }}|g" tu-archivo.html
+          sed -i "s|\${{ secrets.FIREBASE_STORAGE_BUCKET }}|${{ secrets.FIREBASE_STORAGE_BUCKET }}|g" tu-archivo.html
+          sed -i "s|\${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g" tu-archivo.html
+          sed -i "s|\${{ secrets.FIREBASE_APP_ID }}|${{ secrets.FIREBASE_APP_ID }}|g" tu-archivo.html
+        # ⬆️ ¡OJO AQUÍ! ⬆️
+        # Reemplaza 'tu-archivo.html' en TODAS las líneas de arriba por el nombre real de tu archivo HTML.
+
+      # 3. Publica el archivo HTML modificado en tu página de GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ # Publica el contenido de la carpeta principal

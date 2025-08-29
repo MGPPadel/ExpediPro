@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AbogApp - Gestión de Casos Jurídicos (Pulido + MultiPDF)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #111827; }
+    .modal-content { max-height: 85vh; overflow-y: auto; transform-origin: center top; }
+    .toast { position: fixed; bottom: 20px; right: 20px; color: white; padding: 12px 18px; border-radius: 10px; opacity: 0; transform: translateY(8px); transition: opacity .25s ease, transform .25s ease; z-index: 60; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #dc2626; }
+    .toast.warn { background: #d97706; }
+    .input-error { color: #fb7185; font-size: .85rem; margin-top: .25rem; }
+    .modal-card { transition: transform .18s ease, opacity .18s ease; transform: translateY(-8px) scale(.995); opacity: 0; }
+    .modal-enter { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-exit { transform: translateY(-8px) scale(.995); opacity: 0; }
+    tr.hover-row:hover { background-color: rgba(255,255,255,0.03); }
+    .required-dot::after { content: " *"; color: #fb7185; margin-left: 2px; font-weight: 700; }
+    #movement-list li { transition: background-color .15s ease, transform .12s ease; }
+    #movement-list li:hover { transform: translateY(-2px); }
+    .file-pill { background:#374151; color:#e5e7eb; padding:6px 10px; border-radius:8px; display:inline-flex; align-items:center; margin:4px; gap:8px; }
+    .file-pill button { background:transparent; border:none; color:#f87171; font-weight:700; cursor:pointer; }
+    .file-link { color:#93c5fd; text-decoration:underline; margin-right:8px; }
+  </style>
+</head>
+<body class="text-gray-200">
+
+  <div class="container mx-auto p-4 md:p-8">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-white">Gestión de Casos Jurídicos</h1>
+      <button id="addCaseBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Agregar Caso</button>
+    </header>
+
+    <main class="bg-gray-800 rounded-lg shadow overflow-hidden">
+      <table class="w-full text-sm text-left text-gray-400">
+        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+          <tr>
+            <th class="px-6 py-3">N° Expediente</th>
+            <th class="px-6 py-3">Carátula</th>
+            <th class="px-6 py-3">Fuero</th>
+            <th class="px-6 py-3">Juzgado</th>
+            <th class="px-6 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="case-list-body"></tbody>
+      </table>
+    </main>
+  </div>
+
+  <div id="toast" class="toast success">Acción realizada</div>
+
+  <!-- Modal: Nuevo Caso -->
+  <div id="case-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6 modal-card">
+      <div class="flex justify-between items-start mb-2">
+        <h2 class="text-xl font-bold text-white">Agregar Nuevo Caso</h2>
+        <button id="x-case-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <form id="case-form" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Actor</label>
+          <input type="text" id="case-actor" placeholder="Actor" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Demandado</label>
+          <input type="text" id="case-demandado" placeholder="Demandado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">N° Expediente</label>
+          <input type="text" id="case-expediente" placeholder="N° Expediente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300">Objeto del juicio</label>
+          <input type="text" id="case-objeto" placeholder="Objeto del juicio" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Fuero</label>
+          <select id="case-fuero" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            <option value="" disabled selected>Seleccionar fuero</option>
+            <option value="Laboral">Laboral</option>
+            <option value="Civil">Civil</option>
+            <option value="Familia">Familia</option>
+            <option value="Penal">Penal</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <input type="text" id="case-fuero-otro" placeholder="Si es otro, especifique" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 hidden mt-2">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Juzgado</label>
+          <input type="text" id="case-juzgado" placeholder="Juzgado donde está radicado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300">Provincia / Ciudad</label>
+          <input type="text" id="case-provincia" placeholder="Provincia / Ciudad" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300">Abogado de la otra parte</label>
+          <input type="text" id="case-abogado" placeholder="Abogado de la otra parte" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300">Teléfono del abogado</label>
+          <input type="text" id="case-telefono" placeholder="Teléfono del abogado" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5">
+        </div>
+        <div class="flex justify-end space-x-4 pt-2">
+          <button type="button" id="cancel-case-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
+          <button type="submit" id="save-case-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detalles del Caso -->
+  <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl modal-content modal-card">
+      <div class="p-8">
+        <div class="flex justify-between items-start">
+          <h2 class="text-2xl font-bold text-white mb-6">Detalles del Expediente</h2>
+          <button id="close-details-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+        </div>
+        <div id="details-content" class="space-y-2 text-gray-300"></div>
+
+        <div class="mt-8 pt-6 border-t border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Movimientos del Expediente</h3>
+            <button id="add-movement-btn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+              ➕ Agregar Movimiento
+            </button>
+          </div>
+          <ul id="movement-list" class="space-y-4"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar/Editar Movimiento -->
+  <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg modal-content p-6 modal-card">
+      <div class="flex justify-between items-start mb-2">
+        <h2 class="text-xl font-bold text-white" id="movement-modal-title">Agregar Movimiento</h2>
+        <button id="x-movement-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <form id="movement-form" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Fecha</label>
+          <input type="date" id="mov-fecha" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Tipo</label>
+          <select id="mov-tipo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+            <option value="" disabled selected>Seleccionar tipo</option>
+            <option value="escrito">✍️ Escrito</option>
+            <option value="decreto">📜 Decreto</option>
+            <option value="sentencia">⚖️ Sentencia</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 required-dot">Descripción</label>
+          <input type="text" id="mov-descripcion" placeholder="Descripción corta" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5" required>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300">Detalle</label>
+          <textarea id="mov-detalle" rows="3" placeholder="Detalle o texto completo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300">Archivos (PDF) - puede seleccionar varios</label>
+          <input type="file" id="mov-archivos" accept="application/pdf" multiple class="w-full text-gray-300 mt-1">
+          <div id="file-preview" class="mt-2 flex flex-wrap"></div>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-2">
+          <button type="button" id="cancel-movement-btn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg">Cancelar</button>
+          <button type="submit" id="save-movement-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle de un movimiento -->
+  <div id="movement-detail-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" aria-hidden="true">
+    <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-xl modal-content p-6 modal-card">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="text-xl font-bold text-white">Detalle del Movimiento</h2>
+        <button id="close-movement-detail-btn" type="button" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+      </div>
+      <div id="movement-detail-content" class="space-y-4 text-gray-300"></div>
+      <div class="flex justify-end space-x-4 mt-4">
+        <button id="edit-movement-btn" type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg">Editar</button>
+        <button id="delete-movement-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Datos iniciales de ejemplo ----------
+    let casos = [
+      {id: 1, expediente: "123/25", actor: "Pérez", demandado: "García", objeto: "Cobro de pesos", fuero: "Civil", juzgado: "Juzgado 2", provincia: "CABA", abogado: "Dr. López", telefono: "123456789"},
+      {id: 2, expediente: "456/25", actor: "López", demandado: "Martínez", objeto: "Despido", fuero: "Laboral", juzgado: "Juzgado 5", provincia: "Bs As", abogado: "Dr. Pérez", telefono: "987654321"}
+    ];
+    // movimientos: mapa caseId -> array de movimientos
+    let movimientos = { 1: [], 2: [] };
+
+    // ---------- Referencias ----------
+    const caseListBody = document.getElementById("case-list-body");
+    const addCaseBtn = document.getElementById("addCaseBtn");
+    const caseModal = document.getElementById("case-modal");
+    const xCaseBtn = document.getElementById("x-case-btn");
+    const cancelCaseBtn = document.getElementById("cancel-case-btn");
+    const caseForm = document.getElementById("case-form");
+    const toast = document.getElementById("toast");
+    const saveCaseBtn = document.getElementById("save-case-btn");
+
+    const detailsModal = document.getElementById("details-modal");
+    const closeDetailsBtn = document.getElementById("close-details-btn");
+    const detailsContent = document.getElementById("details-content");
+    const addMovementBtn = document.getElementById("add-movement-btn");
+    const movementList = document.getElementById("movement-list");
+
+    const movementModal = document.getElementById("movement-modal");
+    const xMovementBtn = document.getElementById("x-movement-btn");
+    const cancelMovementBtn = document.getElementById("cancel-movement-btn");
+    const movementForm = document.getElementById("movement-form");
+    const movementModalTitle = document.getElementById("movement-modal-title");
+    const movArchivosInput = document.getElementById("mov-archivos");
+    const filePreview = document.getElementById("file-preview");
+
+    const movementDetailModal = document.getElementById("movement-detail-modal");
+    const closeMovementDetailBtn = document.getElementById("close-movement-detail-btn");
+    const movementDetailContent = document.getElementById("movement-detail-content");
+    const editMovementBtn = document.getElementById("edit-movement-btn");
+    const deleteMovementBtn = document.getElementById("delete-movement-btn");
+
+    let currentCaseId = null;
+    let currentMovementIndex = null; // índice del movimiento seleccionado en la lista
+    let movementMode = "create"; // "create" | "edit"
+
+    // For file handling in the movement modal:
+    // - keptFiles: array of files already saved in the movement (when editing). Each: {id, nombre, url}
+    // - newFiles: array of newly selected File objects wrapped: {id, nombre, url, file}
+    let keptFiles = []; // files that exist for the movement and were not removed during edit
+    let newFiles = [];  // newly added during the edit/create session
+
+    // ---------- UTIL: scroll lock & modal animations ----------
+    function anyModalOpen() {
+      return ![caseModal, detailsModal, movementModal, movementDetailModal].every(m => m.classList.contains('hidden'));
+    }
+    function lockScroll() { document.body.style.overflow = 'hidden'; }
+    function unlockScroll() { document.body.style.overflow = ''; }
+
+    function openModal(el) {
+      el.classList.remove('hidden');
+      const card = el.querySelector('.modal-card');
+      if (card) {
+        card.classList.remove('modal-exit');
+        requestAnimationFrame(() => card.classList.add('modal-enter'));
+      }
+      lockScroll();
+    }
+
+    function closeModal(el) {
+      const card = el.querySelector('.modal-card');
+      if (card) {
+        card.classList.remove('modal-enter');
+        card.classList.add('modal-exit');
+        setTimeout(() => {
+          el.classList.add('hidden');
+          card.classList.remove('modal-exit');
+          if (!anyModalOpen()) unlockScroll();
+        }, 180);
+      } else {
+        el.classList.add('hidden');
+        if (!anyModalOpen()) unlockScroll();
+      }
+    }
+
+    // Close on overlay click
+    [caseModal, detailsModal, movementModal, movementDetailModal].forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal(modal);
+      });
+    });
+
+    // ESC to close all
+    document.addEventListener('keydown', (e) => {
+      if (e.key === "Escape") {
+        [caseModal, detailsModal, movementModal, movementDetailModal].forEach(m => m.classList.add('hidden'));
+        if (!anyModalOpen()) unlockScroll();
+      }
+    });
+
+    // ---------- Toasts ----------
+    let toastTimeout = null;
+    function showToast(msg = "Acción realizada", type = "success", ms = 2600) {
+      toast.textContent = msg;
+      toast.className = 'toast ' + type + ' show';
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, ms);
+    }
+
+    // ---------- Field error helpers ----------
+    function clearFieldError(input) {
+      if (!input) return;
+      const next = input.nextElementSibling;
+      if (next && next.classList.contains('input-error')) next.remove();
+      input.classList.remove('border-red-400');
+    }
+    function showFieldError(input, msg) {
+      if (!input) return;
+      clearFieldError(input);
+      const div = document.createElement('div');
+      div.className = 'input-error';
+      div.textContent = msg;
+      input.classList.add('border-red-400');
+      input.parentNode.insertBefore(div, input.nextSibling);
+    }
+    function clearAllErrors(form) {
+      form.querySelectorAll('.input-error').forEach(el => el.remove());
+      form.querySelectorAll('input, select, textarea').forEach(i => i.classList.remove('border-red-400'));
+    }
+
+    // ---------- Render ----------
+    function renderCases() {
+      caseListBody.innerHTML = "";
+      casos.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-gray-700 hover-row";
+        tr.dataset.id = c.id;
+        tr.innerHTML = `
+          <td class="px-6 py-4">${c.expediente}</td>
+          <td class="px-6 py-4">${c.actor} vs. ${c.demandado}</td>
+          <td class="px-6 py-4">${c.fuero}</td>
+          <td class="px-6 py-4">${c.juzgado}</td>
+          <td class="px-6 py-4 text-right">
+            <button class="view-btn bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">Ver</button>
+          </td>
+        `;
+        caseListBody.appendChild(tr);
+      });
+    }
+
+    function renderMovements(caseId) {
+      const lista = movimientos[caseId] || [];
+      movementList.innerHTML = "";
+      if (lista.length === 0) {
+        movementList.innerHTML = "<p class='text-gray-400'>Sin movimientos registrados.</p>";
+        return;
+      }
+      lista.forEach((m, index) => {
+        const li = document.createElement("li");
+        li.className = "bg-gray-700 p-4 rounded-lg shadow cursor-pointer";
+        li.dataset.index = index;
+        // file count indicator
+        const filesCount = (m.archivos && m.archivos.length) ? m.archivos.length : 0;
+        li.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-white">${m.fecha}</span>
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded ${m.tipo === "sentencia" ? "bg-red-600" : m.tipo === "decreto" ? "bg-blue-600" : "bg-green-600"}">
+                ${m.tipo}
+              </span>
+              ${filesCount ? `<span class="text-xs text-gray-300">${filesCount} archivo(s)</span>` : ""}
+            </div>
+          </div>
+          <p class="text-gray-300 mt-1">${m.descripcion}</p>
+        `;
+        movementList.appendChild(li);
+      });
+    }
+
+    // ---------- Listeners: Casos ----------
+    addCaseBtn.addEventListener("click", () => {
+      document.getElementById("case-form").reset();
+      clearAllErrors(caseForm);
+      document.getElementById("case-fuero-otro").classList.add("hidden");
+      openModal(caseModal);
+      setTimeout(() => document.getElementById("case-actor").focus(), 200);
+    });
+    xCaseBtn.addEventListener("click", () => closeModal(caseModal));
+    cancelCaseBtn.addEventListener("click", () => closeModal(caseModal));
+
+    document.getElementById("case-fuero").addEventListener("change", (e) => {
+      const other = document.getElementById("case-fuero-otro");
+      if (e.target.value === "Otro") other.classList.remove("hidden"); else other.classList.add("hidden");
+    });
+
+    caseForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      clearAllErrors(caseForm);
+
+      const actorInput = document.getElementById("case-actor");
+      const demandadoInput = document.getElementById("case-demandado");
+      const expedienteInput = document.getElementById("case-expediente");
+      const objetoInput = document.getElementById("case-objeto");
+      const fueroSelInput = document.getElementById("case-fuero");
+      const fueroOtroInput = document.getElementById("case-fuero-otro");
+      const juzgadoInput = document.getElementById("case-juzgado");
+      const provinciaInput = document.getElementById("case-provincia");
+      const abogadoInput = document.getElementById("case-abogado");
+      const telefonoInput = document.getElementById("case-telefono");
+
+      const actor = actorInput.value.trim();
+      const demandado = demandadoInput.value.trim();
+      const expediente = expedienteInput.value.trim();
+      const objeto = objetoInput.value.trim();
+      const fueroSel = fueroSelInput.value;
+      const fueroOtro = fueroOtroInput.value.trim();
+      const juzgado = juzgadoInput.value.trim();
+      const provincia = provinciaInput.value.trim();
+      const abogado = abogadoInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+
+      let hasError = false;
+      if (!actor) { showFieldError(actorInput, "Ingrese el actor."); hasError = true; }
+      if (!demandado) { showFieldError(demandadoInput, "Ingrese el demandado."); hasError = true; }
+      if (!expediente) { showFieldError(expedienteInput, "Ingrese el número de expediente."); hasError = true; }
+      if (!fueroSel) { showFieldError(fueroSelInput, "Seleccione un fuero."); hasError = true; }
+      if (fueroSel === "Otro" && !fueroOtro) { showFieldError(fueroOtroInput, "Especifique el fuero."); hasError = true; }
+      if (!juzgado) { showFieldError(juzgadoInput, "Ingrese el juzgado."); hasError = true; }
+
+      // duplicate expediente check (case-insensitive)
+      if (expediente) {
+        const dup = casos.some(c => c.expediente && c.expediente.toLowerCase() === expediente.toLowerCase());
+        if (dup) {
+          showFieldError(expedienteInput, "Ya existe un expediente con ese número.");
+          showToast("Expediente duplicado", "error");
+          hasError = true;
+        }
+      }
+
+      if (hasError) {
+        showToast("Corrija los errores antes de guardar.", "warn");
+        return;
+      }
+
+      const fuero = fueroSel === "Otro" && fueroOtro ? fueroOtro : fueroSel || "—";
+
+      const newId = casos.length ? Math.max(...casos.map(c => c.id)) + 1 : 1;
+      const nuevoCaso = { id: newId, expediente, actor, demandado, objeto, fuero, juzgado, provincia, abogado, telefono };
+      casos.push(nuevoCaso);
+      movimientos[newId] = [];
+
+      renderCases();
+      showToast("Caso creado con éxito ✅", "success");
+      setTimeout(() => closeModal(caseModal), 180);
+    });
+
+    // Abrir detalles de un caso
+    caseListBody.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("view-btn")) return;
+      const id = Number(e.target.closest("tr").dataset.id);
+      const caso = casos.find(c => c.id === id);
+      if (!caso) return;
+      currentCaseId = id;
+
+      detailsContent.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+          <div><strong>Actor:</strong><div class="mt-1">${caso.actor}</div></div>
+          <div><strong>Demandado:</strong><div class="mt-1">${caso.demandado}</div></div>
+          <div><strong>N° Expediente:</strong><div class="mt-1">${caso.expediente}</div></div>
+          <div><strong>Objeto del juicio:</strong><div class="mt-1">${caso.objeto || "—"}</div></div>
+          <div><strong>Fuero:</strong><div class="mt-1">${caso.fuero}</div></div>
+          <div><strong>Juzgado:</strong><div class="mt-1">${caso.juzgado}</div></div>
+          <div><strong>Provincia/Ciudad:</strong><div class="mt-1">${caso.provincia || "—"}</div></div>
+          <div><strong>Abogado otra parte:</strong><div class="mt-1">${caso.abogado || "—"}</div></div>
+          <div class="md:col-span-2"><strong>Teléfono del abogado:</strong><div class="mt-1">${caso.telefono || "—"}</div></div>
+        </div>
+      `;
+
+      renderMovements(currentCaseId);
+      openModal(detailsModal);
+    });
+
+    closeDetailsBtn.addEventListener("click", () => closeModal(detailsModal));
+
+    // ---------- Listeners: Movimientos ----------
+    addMovementBtn.addEventListener("click", () => {
+      if (!currentCaseId) {
+        showToast("Abra primero un expediente.", "warn");
+        return;
+      }
+      movementMode = "create";
+      movementForm.reset();
+      clearAllErrors(movementForm);
+      keptFiles = [];
+      newFiles = [];
+      renderFilePreview();
+      movementModalTitle.textContent = "Agregar Movimiento";
+      openModal(movementModal);
+      setTimeout(() => document.getElementById("mov-fecha").focus(), 200);
+    });
+    xMovementBtn.addEventListener("click", () => closeModal(movementModal));
+    cancelMovementBtn.addEventListener("click", () => closeModal(movementModal));
+
+    // File selection: add to newFiles, show preview
+    movArchivosInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      for (const f of files) {
+        const id = 'nf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+        const url = URL.createObjectURL(f);
+        newFiles.push({ id, nombre: f.name, url, file: f });
+      }
+      renderFilePreview();
+      // reset the input so the same file can be selected again if needed
+      movArchivosInput.value = "";
+    });
+
+    function renderFilePreview() {
+      // shows both keptFiles (existing saved) and newFiles
+      filePreview.innerHTML = "";
+      // kept files first
+      keptFiles.forEach((f, idx) => {
+        const div = document.createElement('div');
+        div.className = 'file-pill';
+        div.innerHTML = `<a href="${f.url}" target="_blank" class="file-link">${f.nombre}</a> <button data-type="keep" data-idx="${idx}">✖</button>`;
+        div.querySelector('button').addEventListener('click', () => {
+          // remove from keptFiles (will not be saved on next save)
+          if (confirm('Quitar este archivo guardado del movimiento?')) {
+            keptFiles.splice(idx,1);
+            renderFilePreview();
+          }
+        });
+        filePreview.appendChild(div);
+      });
+      // then new files
+      newFiles.forEach((f, idx) => {
+        const div = document.createElement('div');
+        div.className = 'file-pill';
+        div.innerHTML = `<a href="${f.url}" target="_blank" class="file-link">${f.nombre}</a> <button data-type="new" data-idx="${idx}">✖</button>`;
+        div.querySelector('button').addEventListener('click', () => {
+          // remove from newFiles
+          newFiles.splice(idx,1);
+          renderFilePreview();
+        });
+        filePreview.appendChild(div);
+      });
+      if (keptFiles.length === 0 && newFiles.length === 0) {
+        filePreview.innerHTML = "<p class='text-gray-400'>No hay archivos seleccionados.</p>";
+      }
+    }
+
+    // Guardar movimiento (crear o editar) con validaciones y archivos múltiples
+    movementForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!currentCaseId) { showToast("No hay expediente seleccionado.", "error"); return; }
+
+      clearAllErrors(movementForm);
+      const fechaInput = document.getElementById("mov-fecha");
+      const tipoInput = document.getElementById("mov-tipo");
+      const descripcionInput = document.getElementById("mov-descripcion");
+      const detalleInput = document.getElementById("mov-detalle");
+
+      const fecha = fechaInput.value;
+      const tipo = tipoInput.value;
+      const descripcion = descripcionInput.value.trim();
+      const detalle = detalleInput.value.trim();
+
+      let hasErr = false;
+      if (!fecha) { showFieldError(fechaInput, "Ingrese la fecha."); hasErr = true; }
+      if (!tipo) { showFieldError(tipoInput, "Seleccione el tipo."); hasErr = true; }
+      if (!descripcion) { showFieldError(descripcionInput, "Ingrese una descripción corta."); hasErr = true; }
+
+      if (hasErr) { showToast("Corrija los errores antes de guardar.", "warn"); return; }
+
+      // build archivos array merging keptFiles + newFiles
+      const archivosFinal = [];
+      // add kept (already saved) files (they already have id, nombre, url)
+      for (const k of keptFiles) archivosFinal.push({ id: k.id, nombre: k.nombre, url: k.url });
+      // add new files (wrap created objects)
+      for (const nf of newFiles) archivosFinal.push({ id: nf.id, nombre: nf.nombre, url: nf.url });
+
+      const entry = { fecha, tipo, descripcion, detalle, archivos: archivosFinal };
+
+      if (movementMode === "edit" && currentMovementIndex !== null) {
+        movimientos[currentCaseId][currentMovementIndex] = entry;
+        showToast("Movimiento actualizado ✅", "success");
+      } else {
+        movimientos[currentCaseId].push(entry);
+        showToast("Movimiento agregado ✅", "success");
+      }
+
+      // after save reset temporary arrays and preview
+      keptFiles = [];
+      newFiles = [];
+      renderFilePreview();
+      renderMovements(currentCaseId);
+      setTimeout(() => closeModal(movementModal), 180);
+    });
+
+    // Click en lista de movimientos -> ver detalle
+    movementList.addEventListener("click", (e) => {
+      const li = e.target.closest("li");
+      if (!li) return;
+      currentMovementIndex = Number(li.dataset.index);
+      const mov = (movimientos[currentCaseId] || [])[currentMovementIndex];
+      if (!mov) return;
+
+      // build file block with delete buttons
+      let fileBlock = "";
+      if (mov.archivos && mov.archivos.length) {
+        fileBlock = '<div><strong>Archivos:</strong><div class="mt-2 space-y-2">';
+        mov.archivos.forEach((f, idx) => {
+          // include a delete button for each saved file
+          fileBlock += `<div class="flex items-center justify-between bg-gray-700 p-2 rounded"><a href="${f.url}" target="_blank" class="file-link">${f.nombre}</a> <button data-file-idx="${idx}" class="del-saved-file bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded">Eliminar</button></div>`;
+        });
+        fileBlock += '</div></div>';
+      }
+
+      movementDetailContent.innerHTML = `
+        <p><strong>Fecha:</strong> ${mov.fecha}</p>
+        <p><strong>Tipo:</strong> ${mov.tipo}</p>
+        <p><strong>Descripción:</strong> ${mov.descripcion}</p>
+        <div>
+          <p class="mb-1"><strong>Detalle:</strong></p>
+          <div class="whitespace-pre-wrap bg-gray-700 p-3 rounded">${mov.detalle || "—"}</div>
+        </div>
+        ${fileBlock}
+      `;
+
+      // attach listeners to delete buttons for saved files
+      setTimeout(() => {
+        const delBtns = movementDetailContent.querySelectorAll('.del-saved-file');
+        delBtns.forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+            const idx = Number(btn.getAttribute('data-file-idx'));
+            if (!confirm('Eliminar este archivo del movimiento?')) return;
+            // remove from movement's archivos array
+            movimientos[currentCaseId][currentMovementIndex].archivos.splice(idx,1);
+            // re-render detail & list
+            movementListRenderRefreshAndDetail();
+            showToast('Archivo eliminado ✅', 'success');
+          });
+        });
+      }, 20);
+
+      openModal(movementDetailModal);
+    });
+
+    function movementListRenderRefreshAndDetail() {
+      renderMovements(currentCaseId);
+      // if a movement detail is open, re-open it refreshed
+      const mov = (movimientos[currentCaseId] || [])[currentMovementIndex];
+      if (mov) {
+        // update detail HTML (reuse same code as above)
+        let fileBlock = "";
+        if (mov.archivos && mov.archivos.length) {
+          fileBlock = '<div><strong>Archivos:</strong><div class="mt-2 space-y-2">';
+          mov.archivos.forEach((f, idx) => {
+            fileBlock += `<div class="flex items-center justify-between bg-gray-700 p-2 rounded"><a href="${f.url}" target="_blank" class="file-link">${f.nombre}</a> <button data-file-idx="${idx}" class="del-saved-file bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded">Eliminar</button></div>`;
+          });
+          fileBlock += '</div></div>';
+        }
+        movementDetailContent.innerHTML = `
+          <p><strong>Fecha:</strong> ${mov.fecha}</p>
+          <p><strong>Tipo:</strong> ${mov.tipo}</p>
+          <p><strong>Descripción:</strong> ${mov.descripcion}</p>
+          <div>
+            <p class="mb-1"><strong>Detalle:</strong></p>
+            <div class="whitespace-pre-wrap bg-gray-700 p-3 rounded">${mov.detalle || "—"}</div>
+          </div>
+          ${fileBlock}
+        `;
+        // re-attach delete handlers
+        setTimeout(() => {
+          const delBtns = movementDetailContent.querySelectorAll('.del-saved-file');
+          delBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const idx = Number(btn.getAttribute('data-file-idx'));
+              if (!confirm('Eliminar este archivo del movimiento?')) return;
+              movimientos[currentCaseId][currentMovementIndex].archivos.splice(idx,1);
+              movementListRenderRefreshAndDetail();
+              showToast('Archivo eliminado ✅', 'success');
+            });
+          });
+        },20);
+      } else {
+        // closed or removed movement
+        closeModal(movementDetailModal);
+      }
+    }
+
+    closeMovementDetailBtn.addEventListener("click", () => closeModal(movementDetailModal));
+
+    // Editar movimiento desde detalle
+    editMovementBtn.addEventListener("click", () => {
+      const mov = (movimientos[currentCaseId] || [])[currentMovementIndex];
+      if (!mov) return;
+      // populate fields
+      document.getElementById("mov-fecha").value = mov.fecha || "";
+      document.getElementById("mov-tipo").value = mov.tipo || "";
+      document.getElementById("mov-descripcion").value = mov.descripcion || "";
+      document.getElementById("mov-detalle").value = mov.detalle || "";
+
+      // prepare keptFiles from mov.archivos and clear newFiles
+      keptFiles = mov.archivos ? mov.archivos.map(f => ({...f})) : [];
+      newFiles = [];
+      renderFilePreview();
+
+      movementMode = "edit";
+      movementModalTitle.textContent = "Editar Movimiento";
+      closeModal(movementDetailModal);
+      openModal(movementModal);
+    });
+
+    // Eliminar movimiento completo
+    deleteMovementBtn.addEventListener("click", () => {
+      if (currentMovementIndex === null) return;
+      const ok = confirm("¿Eliminar este movimiento? Esta acción no se puede deshacer.");
+      if (!ok) return;
+      movimientos[currentCaseId].splice(currentMovementIndex, 1);
+      currentMovementIndex = null;
+      renderMovements(currentCaseId);
+      closeModal(movementDetailModal);
+      showToast("Movimiento eliminado 🗑️", "success");
+    });
+
+    // Inicializar
+    renderCases();
+  </script>
+</body>
+</html>
