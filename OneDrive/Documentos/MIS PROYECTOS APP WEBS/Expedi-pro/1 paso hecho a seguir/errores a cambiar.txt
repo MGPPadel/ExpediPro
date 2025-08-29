@@ -1,0 +1,16 @@
+Antes de continuar con la posibilidades de inicio de sesión, me gustaria corregir algunos puntos:
+
+-Hay un error en agregar movimiento en expediente principal. se abren 3 cajas de texto al mismo tiempo, aunque la posibilidad de agregar texto: si funciona
+
+-dentro de un caso. en la seccion: facturacion del caso, no deberia haber opcion para elegir otro caso. la facturacion es directamente de ese caso puntual. 
+
+-en pestaña de gestion de casos juridicos, cambiar nombre de la columna "juzgado" por "nominacion" 
+
+-en la seccion de busqueda: obviar acentos, mayusculas y demas detalles para que la busqueda sea mas simple
+
+-en la seccion facturacion, hay un boton que dice "informes" . Nose cual seria su función. 
+
+link logo: https://jumpshare.com/s/XJJm8oubWGbtrcilsQ1m
+
+al cargar fecha que se ponga con calendario actual 
+en cuaderno de prueba, cuando agrego un movimiento, queda congelada la pantalla
